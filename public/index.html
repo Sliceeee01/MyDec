@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyDesktop - Вход</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="particles"></div>
+    
+    <div class="main-screen">
+        <header class="desktop-header">
+            <div class="desktop-title">
+                <span class="title-icon">⬡</span>
+                MyDesktop
+            </div>
+            <div class="desktop-status">
+                <span class="status-dot"></span>
+                <span class="status-text">Система онлайн</span>
+            </div>
+        </header>
+
+        <main class="desktop-main">
+            <div class="login-center">
+                <div class="login-icon-wrapper">
+                    <div class="login-icon">⬢</div>
+                    <div class="login-ring"></div>
+                </div>
+                <button id="loginBtn" class="login-btn">
+                    <span class="btn-text">Вход в систему</span>
+                    <span class="btn-icon">→</span>
+                </button>
+                <p class="login-hint">Нажмите для авторизации</p>
+            </div>
+        </main>
+
+        <footer class="desktop-footer">
+            <div class="footer-grid">
+                <div class="footer-card">
+                    <div class="footer-card-icon">◈</div>
+                    <h3>О платформе</h3>
+                    <p>MyDesktop - современное решение для управления рабочим пространством</p>
+                </div>
+                <div class="footer-card">
+                    <div class="footer-card-icon">◉</div>
+                    <h3>Контакты</h3>
+                    <p>info@mydesktop.com</p>
+                    <p>+7 (999) 123-45-67</p>
+                </div>
+                <div class="footer-card">
+                    <div class="footer-card-icon">◆</div>
+                    <h3>Версия</h3>
+                    <p>v3.0.0</p>
+                    <p>© 2024 MyDesktop</p>
+                </div>
+            </div>
+        </footer>
+
+        <div id="loginModal" class="modal">
+            <div class="modal-content">
+                <button class="close-modal">✕</button>
+                
+                <div id="loginFormContainer">
+                    <div class="modal-header">
+                        <div class="modal-icon">⬡</div>
+                        <h2 class="modal-title">Вход в систему</h2>
+                    </div>
+                    
+                    <form id="loginForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="loginEmail">Email</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">✉</span>
+                                <input type="email" id="loginEmail" placeholder="your@email.com" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="loginPassword">Пароль</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">🔒</span>
+                                <input type="password" id="loginPassword" placeholder="••••••••" required>
+                                <span class="toggle-password" data-target="loginPassword">👁</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="remember">
+                                <span class="checkmark"></span>
+                                Запомнить меня
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">
+                            <span>Войти</span>
+                            <span class="btn-arrow">→</span>
+                        </button>
+                        
+                        <div class="form-links">
+                            <a href="#" class="form-link" id="showRegister">Регистрация</a>
+                            <span class="link-divider">|</span>
+                            <a href="#" class="form-link" id="showForgot">Забыли пароль?</a>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="registerFormContainer" style="display: none;">
+                    <div class="modal-header">
+                        <div class="modal-icon">⬡</div>
+                        <h2 class="modal-title">Регистрация</h2>
+                    </div>
+                    
+                    <form id="registerForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="regName">Имя</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">👤</span>
+                                <input type="text" id="regName" placeholder="Ваше имя" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="regEmail">Email</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">✉</span>
+                                <input type="email" id="regEmail" placeholder="your@email.com" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="regPassword">Пароль</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">🔒</span>
+                                <input type="password" id="regPassword" placeholder="Минимум 6 символов" required>
+                                <span class="toggle-password" data-target="regPassword">👁</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="regConfirmPassword">Подтверждение</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">🔒</span>
+                                <input type="password" id="regConfirmPassword" placeholder="Повторите пароль" required>
+                                <span class="toggle-password" data-target="regConfirmPassword">👁</span>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">
+                            <span>Зарегистрироваться</span>
+                            <span class="btn-arrow">→</span>
+                        </button>
+                        
+                        <div class="form-links">
+                            <a href="#" class="form-link" id="showLoginFromReg">Уже есть аккаунт? Войти</a>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="forgotFormContainer" style="display: none;">
+                    <div class="modal-header">
+                        <div class="modal-icon">⬡</div>
+                        <h2 class="modal-title">Восстановление</h2>
+                    </div>
+                    
+                    <form id="forgotForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="forgotEmail">Email</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">✉</span>
+                                <input type="email" id="forgotEmail" placeholder="your@email.com" required>
+                            </div>
+                        </div>
+                        
+                        <p class="forgot-info">Инструкция по восстановлению будет отправлена на указанный email</p>
+                        
+                        <button type="submit" class="submit-btn">
+                            <span>Отправить</span>
+                            <span class="btn-arrow">→</span>
+                        </button>
+                        
+                        <div class="form-links">
+                            <a href="#" class="form-link" id="showLoginFromForgot">Вернуться ко входу</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

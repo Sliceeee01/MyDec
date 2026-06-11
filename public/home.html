@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyDesktop - Главная</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="particles"></div>
+    
+    <div class="main-screen">
+        <header class="desktop-header">
+            <div class="desktop-title">
+                <span class="title-icon">⬡</span>
+                MyDesktop
+            </div>
+            <div class="user-panel">
+                <div class="user-info" id="openProfileFromHeader" style="cursor:pointer">
+                    <div class="user-avatar" id="headerAvatar">👤</div>
+                    <div>
+                        <span id="userDisplayName">Пользователь</span>
+                        <div class="user-id-display">Мой ID: <strong id="userUniqueId">...</strong></div>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="logout-btn">
+                    <span>Выйти</span>
+                    <span class="btn-icon">↩</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="home-main">
+            <div class="welcome-section">
+                <div class="stats-grid">
+                    <div class="stat-card" id="btnFriends" style="cursor:pointer">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-value" id="friendsCount">0</div>
+                        <div class="stat-label">Друзей</div>
+                    </div>
+                    <div class="stat-card" id="btnMessages" style="cursor:pointer">
+                        <div class="stat-icon">💬</div>
+                        <div class="stat-value" id="unreadCount">0</div>
+                        <div class="stat-label">Сообщений</div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="action-card" id="btnOpenMessages">
+                        <div class="action-icon">💬</div>
+                        <h3>Сообщения</h3>
+                        <p>Чат с друзьями</p>
+                    </div>
+                    
+                    <div class="action-card" id="btnOpenAddFriend">
+                        <div class="action-icon">➕</div>
+                        <h3>Добавить друга</h3>
+                        <p>Поиск по ID</p>
+                    </div>
+                    
+                    <div class="action-card" id="btnOpenFriendsList">
+                        <div class="action-icon">👥</div>
+                        <h3>Мои друзья</h3>
+                        <p>Список контактов</p>
+                    </div>
+                    
+                    <div class="action-card" id="btnOpenProfile">
+                        <div class="action-icon">👤</div>
+                        <h3>Мой профиль</h3>
+                        <p>Настройки аккаунта</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модальное окно: Добавить друга -->
+    <div id="addFriendModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeAddFriend">✕</button>
+            <div class="modal-header">
+                <div class="modal-icon">➕</div>
+                <h2 class="modal-title">Добавить друга</h2>
+            </div>
+            <div class="form-group">
+                <label>ID друга</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔍</span>
+                    <input type="text" id="friendIdInput" placeholder="Введите ID пользователя">
+                </div>
+            </div>
+            <button id="searchFriendBtn" class="submit-btn">
+                <span>Найти</span>
+            </button>
+            <div id="searchResult" style="margin-top: 1rem;"></div>
+            <p style="text-align:center; color: rgba(255,255,255,0.5); margin-top: 1rem;">
+                Ваш ID: <strong id="myIdInAddFriend">...</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Мессенджер -->
+    <div id="messagesModal" class="modal">
+        <div class="messages-container">
+            <div class="messages-sidebar">
+                <div class="messages-header">
+                    <h2>Сообщения</h2>
+                    <button class="close-messages" id="closeMessages">✕</button>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="userSearch" placeholder="Поиск...">
+                </div>
+                <div class="users-list" id="friendsList"></div>
+            </div>
+            <div class="messages-chat">
+                <div class="chat-header">
+                    <div class="chat-user-info">
+                        <div class="chat-avatar">💬</div>
+                        <div>
+                            <h3 id="chatUserName">Выберите чат</h3>
+                            <span class="chat-status" id="chatStatus"></span>
+                        </div>
+                    </div>
+                    <div class="chat-actions">
+                        <button id="deleteChatBtn" class="delete-chat-btn" style="display:none" title="Удалить чат">🗑️</button>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="no-chat-selected">
+                        <div class="no-chat-icon">💬</div>
+                        <p>Выберите друга для начала общения</p>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <div class="input-actions">
+                        <button id="attachImageBtn" class="attach-btn" title="Прикрепить фото">📎</button>
+                        <input type="file" id="imageInput" accept="image/*" style="display:none">
+                    </div>
+                    <input type="text" id="messageInput" placeholder="Сообщение..." disabled>
+                    <button id="sendMessageBtn" disabled>Отправить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Список друзей -->
+    <div id="friendsListModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeFriendsList">✕</button>
+            <div class="modal-header">
+                <div class="modal-icon">👥</div>
+                <h2 class="modal-title">Мои друзья</h2>
+            </div>
+            <div id="allFriendsList"></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Профиль -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content profile-modal-content">
+            <button class="close-modal" id="closeProfile">✕</button>
+            
+            <!-- Шапка профиля с обложкой -->
+            <div class="profile-cover">
+                <div class="profile-cover-img" id="profileCover" style="background-image: linear-gradient(135deg, #1a1a1a, #0a0a0a);">
+                    <button class="change-cover-btn" id="changeCoverBtn" title="Сменить обложку">📷</button>
+                </div>
+                <input type="file" id="coverInput" accept="image/*" style="display:none">
+            </div>
+            
+            <!-- Аватар -->
+            <div class="profile-avatar-wrapper">
+                <div class="profile-avatar-large" id="profileAvatarLarge">
+                    👤
+                </div>
+                <button class="change-avatar-btn-large" id="changeAvatarBtnLarge" title="Сменить аватар">📷</button>
+                <input type="file" id="avatarInputLarge" accept="image/*" style="display:none">
+            </div>
+            
+            <!-- Информация профиля -->
+            <div class="profile-info-container">
+                <div class="profile-field">
+                    <label>Имя пользователя</label>
+                    <input type="text" id="profileName" placeholder="Ваше имя">
+                    <div class="name-change-info" id="nameChangeInfo"></div>
+                    <div class="last-name-change" id="lastNameChange"></div>
+                </div>
+                
+                <div class="profile-field">
+                    <label>О себе</label>
+                    <textarea id="profileBio" rows="3" placeholder="Расскажите о себе..."></textarea>
+                </div>
+                
+                <div class="profile-field">
+                    <label>Email</label>
+                    <input type="email" id="profileEmail" readonly disabled style="opacity:0.6">
+                </div>
+                
+                <div class="profile-field">
+                    <label>Мой ID</label>
+                    <input type="text" id="profileId" readonly disabled style="opacity:0.6">
+                </div>
+                
+                <button id="saveProfileBtn" class="submit-btn">Сохранить изменения</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Контекстное меню для сообщений -->
+    <div id="messageContextMenu" class="context-menu" style="display:none">
+        <div class="context-menu-item" id="menuDeleteMessage">🗑️ Удалить сообщение</div>
+        <div class="context-menu-item" id="menuPinMessage">📌 Закрепить</div>
+        <div class="context-menu-item" id="menuUnpinMessage" style="display:none">📌 Открепить</div>
+        <div class="context-menu-item" id="menuCopyText">📋 Копировать текст</div>
+    </div>
+
+    <script src="home.js"></script>
+</body>
+</html>
