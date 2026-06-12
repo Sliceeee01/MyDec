@@ -1,102 +1,188 @@
 // ============================================
-// БАЗА ДАННЫХ
+// ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+// ============================================
+let db, ref, set, get, push, query, orderByChild, equalTo, update, remove, onValue;
+
+// Ждем загрузки Firebase
+function waitForFirebase() {
+    return new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+            if (window.firebaseDB) {
+                db = window.firebaseDB;
+                ref = window.firebaseRef;
+                set = window.firebaseSet;
+                get = window.firebaseGet;
+                push = window.firebasePush;
+                query = window.firebaseQuery;
+                orderByChild = window.firebaseOrderByChild;
+                equalTo = window.firebaseEqualTo;
+                update = window.firebaseUpdate;
+                remove = window.firebaseRemove;
+                onValue = window.firebaseOnValue;
+                clearInterval(checkInterval);
+                resolve();
+            }
+        }, 100);
+    });
+}
+
+// ============================================
+// БАЗА ДАННЫХ FIRESTORE
 // ============================================
 class Database {
     constructor() {
-        this.storageKey = 'mydesktop_users_v3';
+        this.initPromise = waitForFirebase();
     }
 
-    getUsers() {
-        const data = localStorage.getItem(this.storageKey);
-        if (data) return JSON.parse(data);
-        
-        // Создаем начальных пользователей с уникальными ID
-        const initialUsers = [
-            this.createUserObject('Администратор', 'admin@mail.ru', 'admin123'),
-            this.createUserObject('Пользователь', 'user@mail.ru', 'user123'),
-            this.createUserObject('Тестовый', 'test@mail.ru', 'test123')
-        ];
-        
-        this.saveUsers(initialUsers);
-        return initialUsers;
+    async getUsers() {
+        await this.initPromise;
+        const usersRef = ref(db, 'users');
+        const snapshot = await get(usersRef);
+        const users = snapshot.val();
+        return users ? Object.values(users) : [];
     }
 
-    createUserObject(name, email, password) {
-        return {
-            id: Date.now() + Math.random(),
+    async saveUsers(users) {
+        await this.initPromise;
+        // Не используем, Firebase работает по-другому
+    }
+
+    async findUserByEmail(email) {
+        await this.initPromise;
+        const usersRef = ref(db, 'users');
+        const snapshot = await get(usersRef);
+        const users = snapshot.val();
+        if (!users) return null;
+        
+        for (let key in users) {
+            if (users[key].email === email.toLowerCase()) {
+                return { ...users[key], id: key };
+            }
+        }
+        return null;
+    }
+
+    async findUserByUniqueId(uniqueId) {
+        await this.initPromise;
+        const usersRef = ref(db, 'users');
+        const snapshot = await get(usersRef);
+        const users = snapshot.val();
+        if (!users) return null;
+        
+        for (let key in users) {
+            if (users[key].uniqueId === uniqueId) {
+                return { ...users[key], id: key };
+            }
+        }
+        return null;
+    }
+
+    async addUser(name, email, password) {
+        await this.initPromise;
+        const usersRef = ref(db, 'users');
+        const newUserRef = push(usersRef);
+        const uniqueId = 'ID' + Math.random().toString(36).substr(2, 8).toUpperCase();
+        
+        const userData = {
             name: name,
             email: email.toLowerCase(),
             password: password,
-            uniqueId: 'ID' + Math.random().toString(36).substr(2, 8).toUpperCase(),
+            uniqueId: uniqueId,
             friends: [],
+            avatar: null,
+            bio: '',
+            cover: null,
+            lastNameChange: 0,
             createdAt: new Date().toISOString()
         };
+        
+        await set(newUserRef, userData);
+        return { ...userData, id: newUserRef.key };
     }
 
-    saveUsers(users) {
-        localStorage.setItem(this.storageKey, JSON.stringify(users));
+    async findUser(email, password) {
+        await this.initPromise;
+        const user = await this.findUserByEmail(email);
+        if (user && user.password === password) {
+            return user;
+        }
+        return null;
     }
 
-    addUser(name, email, password) {
-        const users = this.getUsers();
-        const newUser = this.createUserObject(name, email, password);
-        users.push(newUser);
-        this.saveUsers(users);
-        return newUser;
-    }
-
-    findUserByEmail(email) {
-        return this.getUsers().find(u => u.email === email.toLowerCase());
-    }
-
-    findUserByUniqueId(uniqueId) {
-        return this.getUsers().find(u => u.uniqueId === uniqueId);
-    }
-
-    findUser(email, password) {
-        return this.getUsers().find(u => u.email === email.toLowerCase() && u.password === password);
-    }
-
-    addFriend(userEmail, friendId) {
-        const users = this.getUsers();
-        const user = users.find(u => u.email === userEmail.toLowerCase());
-        const friend = users.find(u => u.uniqueId === friendId);
+    async addFriend(userEmail, friendId) {
+        await this.initPromise;
+        const user = await this.findUserByEmail(userEmail);
+        const friend = await this.findUserByUniqueId(friendId);
         
         if (!user || !friend || user.email === friend.email) return false;
         
         if (!user.friends) user.friends = [];
         if (!friend.friends) friend.friends = [];
         
-        if (!user.friends.includes(friendId)) user.friends.push(friendId);
-        if (!friend.friends.includes(user.uniqueId)) friend.friends.push(user.uniqueId);
+        if (!user.friends.includes(friendId)) {
+            user.friends.push(friendId);
+            await set(ref(db, 'users/' + user.id + '/friends'), user.friends);
+        }
         
-        this.saveUsers(users);
+        if (!friend.friends.includes(user.uniqueId)) {
+            friend.friends.push(user.uniqueId);
+            await set(ref(db, 'users/' + friend.id + '/friends'), friend.friends);
+        }
+        
         return true;
     }
 
-    removeFriend(userEmail, friendId) {
-        const users = this.getUsers();
-        const user = users.find(u => u.email === userEmail.toLowerCase());
-        const friend = users.find(u => u.uniqueId === friendId);
+    async removeFriend(userEmail, friendId) {
+        await this.initPromise;
+        const user = await this.findUserByEmail(userEmail);
+        const friend = await this.findUserByUniqueId(friendId);
         
         if (!user || !friend) return false;
         
-        user.friends = user.friends.filter(id => id !== friendId);
-        friend.friends = friend.friends.filter(id => id !== user.uniqueId);
+        if (user.friends) {
+            user.friends = user.friends.filter(id => id !== friendId);
+            await set(ref(db, 'users/' + user.id + '/friends'), user.friends);
+        }
         
-        this.saveUsers(users);
+        if (friend.friends) {
+            friend.friends = friend.friends.filter(id => id !== user.uniqueId);
+            await set(ref(db, 'users/' + friend.id + '/friends'), friend.friends);
+        }
+        
         return true;
     }
 
-    getFriends(userEmail) {
-        const user = this.findUserByEmail(userEmail);
-        if (!user || !user.friends) return [];
+    async getFriends(userEmail) {
+        await this.initPromise;
+        const user = await this.findUserByEmail(userEmail);
+        if (!user || !user.friends || user.friends.length === 0) return [];
         
-        const users = this.getUsers();
-        return user.friends.map(fid => {
-            const friend = users.find(u => u.uniqueId === fid);
-            return friend ? { uniqueId: friend.uniqueId, name: friend.name, email: friend.email } : null;
-        }).filter(Boolean);
+        const friends = [];
+        for (let friendId of user.friends) {
+            const friend = await this.findUserByUniqueId(friendId);
+            if (friend) {
+                friends.push({
+                    uniqueId: friend.uniqueId,
+                    name: friend.name,
+                    email: friend.email,
+                    avatar: friend.avatar,
+                    bio: friend.bio
+                });
+            }
+        }
+        return friends;
+    }
+
+    async updateUser(email, updates) {
+        await this.initPromise;
+        const user = await this.findUserByEmail(email);
+        if (user) {
+            for (let key in updates) {
+                await set(ref(db, 'users/' + user.id + '/' + key), updates[key]);
+            }
+            return true;
+        }
+        return false;
     }
 }
 
@@ -105,77 +191,199 @@ class Database {
 // ============================================
 class MessageManager {
     constructor() {
-        this.storageKey = 'mydesktop_messages_v3';
+        this.initPromise = waitForFirebase();
+        this.currentListener = null;
     }
 
-    getMessages() {
-        const data = localStorage.getItem(this.storageKey);
-        return data ? JSON.parse(data) : {};
+    async getMessages() {
+        await this.initPromise;
+        const messagesRef = ref(db, 'messages');
+        const snapshot = await get(messagesRef);
+        return snapshot.val() || {};
     }
 
-    saveMessages(messages) {
-        localStorage.setItem(this.storageKey, JSON.stringify(messages));
-    }
-
-    getChatId(id1, id2) {
+    async getChatId(id1, id2) {
         return [id1, id2].sort().join('___');
     }
 
-    send(fromId, toId, text) {
-        const messages = this.getMessages();
-        const chatId = this.getChatId(fromId, toId);
+    async send(fromId, toId, text, image = null) {
+        await this.initPromise;
+        const chatId = await this.getChatId(fromId, toId);
+        const messagesRef = ref(db, 'messages/' + chatId);
+        const newMessageRef = push(messagesRef);
         
-        if (!messages[chatId]) messages[chatId] = [];
-        
-        messages[chatId].push({
+        const messageData = {
             id: Date.now(),
             from: fromId,
             to: toId,
             text: text,
+            image: image,
+            pinned: false,
             time: new Date().toISOString(),
             read: false
-        });
+        };
         
-        this.saveMessages(messages);
+        await set(newMessageRef, messageData);
     }
 
-    getConversation(id1, id2) {
-        const messages = this.getMessages();
-        return messages[this.getChatId(id1, id2)] || [];
+    async deleteMessage(chatId, messageId) {
+        await this.initPromise;
+        const messagesRef = ref(db, 'messages/' + chatId);
+        const snapshot = await get(messagesRef);
+        const messages = snapshot.val();
+        
+        if (messages) {
+            for (let key in messages) {
+                if (messages[key].id === messageId) {
+                    await remove(ref(db, 'messages/' + chatId + '/' + key));
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
-    getUnreadCount(userId) {
-        const messages = this.getMessages();
+    async pinMessage(chatId, messageId) {
+        await this.initPromise;
+        const messagesRef = ref(db, 'messages/' + chatId);
+        const snapshot = await get(messagesRef);
+        const messages = snapshot.val();
+        
+        if (messages) {
+            // Снимаем закрепление со всех
+            for (let key in messages) {
+                if (messages[key].pinned) {
+                    await set(ref(db, 'messages/' + chatId + '/' + key + '/pinned'), false);
+                }
+            }
+            // Закрепляем выбранное
+            for (let key in messages) {
+                if (messages[key].id === messageId) {
+                    await set(ref(db, 'messages/' + chatId + '/' + key + '/pinned'), true);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    async unpinMessage(chatId, messageId) {
+        await this.initPromise;
+        const messagesRef = ref(db, 'messages/' + chatId);
+        const snapshot = await get(messagesRef);
+        const messages = snapshot.val();
+        
+        if (messages) {
+            for (let key in messages) {
+                if (messages[key].id === messageId) {
+                    await set(ref(db, 'messages/' + chatId + '/' + key + '/pinned'), false);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    async getPinnedMessage(chatId) {
+        await this.initPromise;
+        const messagesRef = ref(db, 'messages/' + chatId);
+        const snapshot = await get(messagesRef);
+        const messages = snapshot.val();
+        
+        if (messages) {
+            for (let key in messages) {
+                if (messages[key].pinned) {
+                    return messages[key];
+                }
+            }
+        }
+        return null;
+    }
+
+    async getConversation(id1, id2) {
+        await this.initPromise;
+        const chatId = await this.getChatId(id1, id2);
+        const messagesRef = ref(db, 'messages/' + chatId);
+        const snapshot = await get(messagesRef);
+        const messages = snapshot.val();
+        
+        if (!messages) return [];
+        return Object.values(messages).sort((a, b) => a.id - b.id);
+    }
+
+    async getUnreadCount(userId) {
+        await this.initPromise;
+        const messagesRef = ref(db, 'messages');
+        const snapshot = await get(messagesRef);
+        const allMessages = snapshot.val();
         let count = 0;
-        Object.values(messages).forEach(chat => {
-            chat.forEach(msg => {
-                if (msg.to === userId && !msg.read) count++;
-            });
-        });
+        
+        if (allMessages) {
+            for (let chatId in allMessages) {
+                for (let key in allMessages[chatId]) {
+                    const msg = allMessages[chatId][key];
+                    if (msg.to === userId && !msg.read) count++;
+                }
+            }
+        }
         return count;
     }
 
-    markAsRead(fromId, toId) {
-        const messages = this.getMessages();
-        const chatId = this.getChatId(fromId, toId);
+    async markAsRead(fromId, toId) {
+        await this.initPromise;
+        const chatId = await this.getChatId(fromId, toId);
+        const messagesRef = ref(db, 'messages/' + chatId);
+        const snapshot = await get(messagesRef);
+        const messages = snapshot.val();
         
-        if (messages[chatId]) {
-            messages[chatId].forEach(msg => {
-                if (msg.to === toId) msg.read = true;
-            });
-            this.saveMessages(messages);
+        if (messages) {
+            for (let key in messages) {
+                if (messages[key].to === toId && !messages[key].read) {
+                    await set(ref(db, 'messages/' + chatId + '/' + key + '/read'), true);
+                }
+            }
         }
     }
 
-    deleteChat(id1, id2) {
-        const messages = this.getMessages();
-        delete messages[this.getChatId(id1, id2)];
-        this.saveMessages(messages);
+    async deleteChat(id1, id2) {
+        await this.initPromise;
+        const chatId = await this.getChatId(id1, id2);
+        await remove(ref(db, 'messages/' + chatId));
     }
 
-    getLastMessage(id1, id2) {
-        const conv = this.getConversation(id1, id2);
+    async getLastMessage(id1, id2) {
+        const conv = await this.getConversation(id1, id2);
         return conv[conv.length - 1];
+    }
+
+    subscribeToMessages(id1, id2, callback) {
+        this.initPromise.then(async () => {
+            const chatId = await this.getChatId(id1, id2);
+            const messagesRef = ref(db, 'messages/' + chatId);
+            
+            if (this.currentListener) {
+                this.currentListener();
+            }
+            
+            const unsubscribe = onValue(messagesRef, async (snapshot) => {
+                const messages = snapshot.val();
+                if (messages) {
+                    const messagesArray = Object.values(messages).sort((a, b) => a.id - b.id);
+                    callback(messagesArray);
+                } else {
+                    callback([]);
+                }
+            });
+            
+            this.currentListener = unsubscribe;
+        });
+    }
+
+    unsubscribe() {
+        if (this.currentListener) {
+            this.currentListener();
+            this.currentListener = null;
+        }
     }
 }
 
@@ -185,14 +393,14 @@ class MessageManager {
 class LoginApp {
     constructor() {
         this.db = new Database();
-        this.isRedirecting = false; // Флаг для предотвращения повторного редиректа
         this.init();
     }
 
-    init() {
+    async init() {
+        await this.db.initPromise;
         this.cacheDOM();
         this.bindEvents();
-        this.checkIfLoggedIn();
+        await this.checkIfLoggedIn();
         this.showUsersInConsole();
     }
 
@@ -261,9 +469,8 @@ class LoginApp {
         document.body.style.overflow = 'auto';
     }
 
-    login(e) {
+    async login(e) {
         e.preventDefault();
-        
         const email = this.loginEmail.value.trim();
         const password = this.loginPassword.value;
         
@@ -272,27 +479,25 @@ class LoginApp {
             return;
         }
         
-        const user = this.db.findUser(email, password);
+        const user = await this.db.findUser(email, password);
         
         if (user) {
             const userData = {
                 email: user.email,
                 name: user.name,
-                uniqueId: user.uniqueId
+                uniqueId: user.uniqueId,
+                avatar: user.avatar,
+                bio: user.bio
             };
             
-            // Сначала сохраняем пользователя
             if (this.remember.checked) {
                 localStorage.setItem('currentUser', JSON.stringify(userData));
-                // Удаляем возможный конфликтующий sessionStorage
                 sessionStorage.removeItem('currentUser');
             } else {
                 sessionStorage.setItem('currentUser', JSON.stringify(userData));
-                // Удаляем возможный конфликтующий localStorage
                 localStorage.removeItem('currentUser');
             }
             
-            // Небольшая задержка перед редиректом, чтобы гарантировать сохранение
             setTimeout(() => {
                 window.location.href = 'home.html';
             }, 100);
@@ -301,7 +506,7 @@ class LoginApp {
         }
     }
 
-    register(e) {
+    async register(e) {
         e.preventDefault();
         const name = this.regName.value.trim();
         const email = this.regEmail.value.trim();
@@ -323,19 +528,20 @@ class LoginApp {
             return;
         }
         
-        if (this.db.findUserByEmail(email)) {
+        const existingUser = await this.db.findUserByEmail(email);
+        if (existingUser) {
             alert('Email уже используется');
             return;
         }
         
-        const newUser = this.db.addUser(name, email, password);
+        const newUser = await this.db.addUser(name, email, password);
         alert(`Регистрация успешна!\nВаш ID: ${newUser.uniqueId}\nСохраните его!`);
         
         this.showForm('login');
         this.loginEmail.value = email;
     }
 
-    forgotPassword(e) {
+    async forgotPassword(e) {
         e.preventDefault();
         const email = this.forgotEmail.value.trim();
         
@@ -344,7 +550,7 @@ class LoginApp {
             return;
         }
         
-        const user = this.db.findUserByEmail(email);
+        const user = await this.db.findUserByEmail(email);
         
         if (!user) {
             alert('Пользователь не найден');
@@ -352,12 +558,7 @@ class LoginApp {
         }
         
         const newPassword = Math.random().toString(36).substr(2, 8);
-        user.password = newPassword;
-        
-        const users = this.db.getUsers();
-        const index = users.findIndex(u => u.email === email);
-        users[index] = user;
-        this.db.saveUsers(users);
+        await this.db.updateUser(email, { password: newPassword });
         
         alert(`Новый пароль: ${newPassword}\nЗапишите его!`);
         console.log(`Новый пароль для ${email}: ${newPassword}`);
@@ -366,65 +567,34 @@ class LoginApp {
         this.loginEmail.value = email;
     }
 
-    checkIfLoggedIn() {
-        // Проверяем, есть ли пользователь в хранилище
+    async checkIfLoggedIn() {
         const currentUser = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
         
-        // Если есть пользователь и мы еще не перенаправляем
-        if (currentUser && !this.isRedirecting) {
-            this.isRedirecting = true;
-            
-            // Проверяем, что пользователь действительно существует в БД
+        if (currentUser) {
             try {
                 const userData = JSON.parse(currentUser);
-                const userExists = this.db.findUserByEmail(userData.email);
-                
+                const userExists = await this.db.findUserByEmail(userData.email);
                 if (userExists) {
-                    // Небольшая задержка для предотвращения конфликтов
-                    setTimeout(() => {
-                        window.location.replace('home.html');
-                    }, 50);
-                } else {
-                    // Пользователь не существует в БД - очищаем хранилище
-                    localStorage.removeItem('currentUser');
-                    sessionStorage.removeItem('currentUser');
-                    this.isRedirecting = false;
+                    window.location.href = 'home.html';
                 }
-            } catch (error) {
-                console.error('Ошибка при проверке пользователя:', error);
-                localStorage.removeItem('currentUser');
-                sessionStorage.removeItem('currentUser');
-                this.isRedirecting = false;
-            }
+            } catch(e) {}
         }
     }
 
-    showUsersInConsole() {
-        const users = this.db.getUsers();
+    async showUsersInConsole() {
+        const users = await this.db.getUsers();
         console.log('=== ПОЛЬЗОВАТЕЛИ ===');
         console.table(users.map(u => ({
             Имя: u.name,
             Email: u.email,
-            ID: u.uniqueId,
-            Пароль: u.password
+            ID: u.uniqueId
         })));
     }
 }
 
-// Очищаем все потенциально проблемные данные при загрузке страницы
-(function cleanup() {
-    // Удаляем старые версии пользователей, если есть конфликты
-    const currentUserLocal = localStorage.getItem('currentUser');
-    const currentUserSession = sessionStorage.getItem('currentUser');
-    
-    if (currentUserLocal && currentUserSession) {
-        // Если есть оба, оставляем только один (приоритет у localStorage)
-        sessionStorage.removeItem('currentUser');
-        console.log('Очищен конфликт sessionStorage');
-    }
-})();
-
-// Запускаем приложение после полной загрузки DOM
+// ============================================
+// ЗАПУСК
+// ============================================
 document.addEventListener('DOMContentLoaded', () => {
     new LoginApp();
 });

@@ -34,161 +34,175 @@
                 <p class="login-hint">Нажмите для авторизации</p>
             </div>
         </main>
+    </div>
 
-        <footer class="desktop-footer">
-            <div class="footer-grid">
-                <div class="footer-card">
-                    <div class="footer-card-icon">◈</div>
-                    <h3>О платформе</h3>
-                    <p>MyDesktop - современное решение для управления рабочим пространством</p>
+    <!-- Модальное окно входа/регистрации -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal">✕</button>
+            
+            <div id="loginFormContainer">
+                <div class="modal-header">
+                    <div class="modal-icon">⬡</div>
+                    <h2 class="modal-title">Вход в систему</h2>
                 </div>
-                <div class="footer-card">
-                    <div class="footer-card-icon">◉</div>
-                    <h3>Контакты</h3>
-                    <p>info@mydesktop.com</p>
-                    <p>+7 (999) 123-45-67</p>
-                </div>
-                <div class="footer-card">
-                    <div class="footer-card-icon">◆</div>
-                    <h3>Версия</h3>
-                    <p>v3.0.0</p>
-                    <p>© 2024 MyDesktop</p>
-                </div>
-            </div>
-        </footer>
-
-        <div id="loginModal" class="modal">
-            <div class="modal-content">
-                <button class="close-modal">✕</button>
                 
-                <div id="loginFormContainer">
-                    <div class="modal-header">
-                        <div class="modal-icon">⬡</div>
-                        <h2 class="modal-title">Вход в систему</h2>
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">✉</span>
+                            <input type="email" id="loginEmail" placeholder="your@email.com" required>
+                        </div>
                     </div>
                     
-                    <form id="loginForm" class="auth-form">
-                        <div class="form-group">
-                            <label for="loginEmail">Email</label>
-                            <div class="input-wrapper">
-                                <span class="input-icon">✉</span>
-                                <input type="email" id="loginEmail" placeholder="your@email.com" required>
-                            </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Пароль</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" id="loginPassword" placeholder="••••••••" required>
+                            <span class="toggle-password" data-target="loginPassword">👁</span>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="loginPassword">Пароль</label>
-                            <div class="input-wrapper">
-                                <span class="input-icon">🔒</span>
-                                <input type="password" id="loginPassword" placeholder="••••••••" required>
-                                <span class="toggle-password" data-target="loginPassword">👁</span>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="remember">
-                                <span class="checkmark"></span>
-                                Запомнить меня
-                            </label>
-                        </div>
-                        
-                        <button type="submit" class="submit-btn">
-                            <span>Войти</span>
-                            <span class="btn-arrow">→</span>
-                        </button>
-                        
-                        <div class="form-links">
-                            <a href="#" class="form-link" id="showRegister">Регистрация</a>
-                            <span class="link-divider">|</span>
-                            <a href="#" class="form-link" id="showForgot">Забыли пароль?</a>
-                        </div>
-                    </form>
-                </div>
-
-                <div id="registerFormContainer" style="display: none;">
-                    <div class="modal-header">
-                        <div class="modal-icon">⬡</div>
-                        <h2 class="modal-title">Регистрация</h2>
                     </div>
                     
-                    <form id="registerForm" class="auth-form">
-                        <div class="form-group">
-                            <label for="regName">Имя</label>
-                            <div class="input-wrapper">
-                                <span class="input-icon">👤</span>
-                                <input type="text" id="regName" placeholder="Ваше имя" required>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="regEmail">Email</label>
-                            <div class="input-wrapper">
-                                <span class="input-icon">✉</span>
-                                <input type="email" id="regEmail" placeholder="your@email.com" required>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="regPassword">Пароль</label>
-                            <div class="input-wrapper">
-                                <span class="input-icon">🔒</span>
-                                <input type="password" id="regPassword" placeholder="Минимум 6 символов" required>
-                                <span class="toggle-password" data-target="regPassword">👁</span>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="regConfirmPassword">Подтверждение</label>
-                            <div class="input-wrapper">
-                                <span class="input-icon">🔒</span>
-                                <input type="password" id="regConfirmPassword" placeholder="Повторите пароль" required>
-                                <span class="toggle-password" data-target="regConfirmPassword">👁</span>
-                            </div>
-                        </div>
-                        
-                        <button type="submit" class="submit-btn">
-                            <span>Зарегистрироваться</span>
-                            <span class="btn-arrow">→</span>
-                        </button>
-                        
-                        <div class="form-links">
-                            <a href="#" class="form-link" id="showLoginFromReg">Уже есть аккаунт? Войти</a>
-                        </div>
-                    </form>
-                </div>
-
-                <div id="forgotFormContainer" style="display: none;">
-                    <div class="modal-header">
-                        <div class="modal-icon">⬡</div>
-                        <h2 class="modal-title">Восстановление</h2>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="remember">
+                            <span class="checkmark"></span>
+                            Запомнить меня
+                        </label>
                     </div>
                     
-                    <form id="forgotForm" class="auth-form">
-                        <div class="form-group">
-                            <label for="forgotEmail">Email</label>
-                            <div class="input-wrapper">
-                                <span class="input-icon">✉</span>
-                                <input type="email" id="forgotEmail" placeholder="your@email.com" required>
-                            </div>
-                        </div>
-                        
-                        <p class="forgot-info">Инструкция по восстановлению будет отправлена на указанный email</p>
-                        
-                        <button type="submit" class="submit-btn">
-                            <span>Отправить</span>
-                            <span class="btn-arrow">→</span>
-                        </button>
-                        
-                        <div class="form-links">
-                            <a href="#" class="form-link" id="showLoginFromForgot">Вернуться ко входу</a>
-                        </div>
-                    </form>
+                    <button type="submit" class="submit-btn">
+                        <span>Войти</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                    
+                    <div class="form-links">
+                        <a href="#" class="form-link" id="showRegister">Регистрация</a>
+                        <span class="link-divider">|</span>
+                        <a href="#" class="form-link" id="showForgot">Забыли пароль?</a>
+                    </div>
+                </form>
+            </div>
+
+            <div id="registerFormContainer" style="display: none;">
+                <div class="modal-header">
+                    <div class="modal-icon">⬡</div>
+                    <h2 class="modal-title">Регистрация</h2>
                 </div>
+                
+                <form id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="regName">Имя</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">👤</span>
+                            <input type="text" id="regName" placeholder="Ваше имя" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regEmail">Email</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">✉</span>
+                            <input type="email" id="regEmail" placeholder="your@email.com" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="regPassword">Пароль</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" id="regPassword" placeholder="Минимум 6 символов" required>
+                            <span class="toggle-password" data-target="regPassword">👁</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regConfirmPassword">Подтверждение</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" id="regConfirmPassword" placeholder="Повторите пароль" required>
+                            <span class="toggle-password" data-target="regConfirmPassword">👁</span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <span>Зарегистрироваться</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                    
+                    <div class="form-links">
+                        <a href="#" class="form-link" id="showLoginFromReg">Уже есть аккаунт? Войти</a>
+                    </div>
+                </form>
+            </div>
+
+            <div id="forgotFormContainer" style="display: none;">
+                <div class="modal-header">
+                    <div class="modal-icon">⬡</div>
+                    <h2 class="modal-title">Восстановление</h2>
+                </div>
+                
+                <form id="forgotForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="forgotEmail">Email</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">✉</span>
+                            <input type="email" id="forgotEmail" placeholder="your@email.com" required>
+                        </div>
+                    </div>
+                    
+                    <p class="forgot-info">Новый пароль будет отправлен на ваш email</p>
+                    
+                    <button type="submit" class="submit-btn">
+                        <span>Отправить</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                    
+                    <div class="form-links">
+                        <a href="#" class="form-link" id="showLoginFromForgot">Вернуться ко входу</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getDatabase, ref, set, get, push, query, orderByChild, equalTo, update, remove, onValue } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+        
+        // ========== ВСТАВЬ СВОЙ КОНФИГ СЮДА ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyCK5MTlhq15C_aFTS2prR2QrM-U4F2kgJo",
+            authDomain: "mydesktop-chat.firebaseapp.com",
+            databaseURL: "https://mydesktop-chat-default-rtdb.firebaseio.com",
+            projectId: "mydesktop-chat",
+            storageBucket: "mydesktop-chat.firebasestorage.app",
+            messagingSenderId: "422339167016",
+            appId: "1:422339167016:web:faa470c1bdb0ccdef9861d"
+        };
+   
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        window.firebaseDB = db;
+        window.firebaseRef = ref;
+        window.firebaseSet = set;
+        window.firebaseGet = get;
+        window.firebasePush = push;
+        window.firebaseQuery = query;
+        window.firebaseOrderByChild = orderByChild;
+        window.firebaseEqualTo = equalTo;
+        window.firebaseUpdate = update;
+        window.firebaseRemove = remove;
+        window.firebaseOnValue = onValue;
+        
+        // Загружаем основной код
+        const script = document.createElement('script');
+        script.src = 'script.js';
+        document.body.appendChild(script);
+    </script>
 </body>
 </html>
