@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover">
     <title>Slicemes - Главная</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -37,7 +37,29 @@
                     <span class="nav-text">Развлечения</span>
                 </div>
             </nav>
-            
+                <!-- МОБИЛЬНОЕ НИЖНЕЕ МЕНЮ (только для телефонов) -->
+    <div class="mobile-bottom-nav" id="mobileBottomNav">
+        <button class="mobile-nav-item" data-page="chats">
+            <div class="mobile-nav-icon" data-icon="chats"></div>
+            <span class="mobile-nav-text">Чаты</span>
+        </button>
+        <button class="mobile-nav-item" data-page="friends">
+            <div class="mobile-nav-icon" data-icon="friends"></div>
+            <span class="mobile-nav-text">Друзья</span>
+        </button>
+        <button class="mobile-nav-item" data-page="feed">
+            <div class="mobile-nav-icon" data-icon="feed"></div>
+            <span class="mobile-nav-text">Лента</span>
+        </button>
+        <button class="mobile-nav-item" data-page="games">
+            <div class="mobile-nav-icon" data-icon="games"></div>
+            <span class="mobile-nav-text">Игры</span>
+        </button>
+        <button class="mobile-nav-item" data-page="profile">
+            <div class="mobile-nav-icon" data-icon="profile"></div>
+            <span class="mobile-nav-text">Профиль</span>
+        </button>
+    </div>
             <div class="sidebar-footer">
                 <div class="user-mini" id="openProfileBtn">
                     <div class="user-mini-avatar" id="sidebarAvatar">👤</div>
@@ -173,10 +195,9 @@
         <div class="modal-content profile-modal-content">
             <button class="close-modal" id="closeProfileModal">✕</button>
             
-            <div class="profile-cover" id="profileCover">
-                <button class="change-cover-btn" id="changeCoverBtn">📷 Сменить обложку</button>
-            </div>
-            
+          <div class="profile-cover" id="profileCover">
+    <button class="change-cover-btn" id="changeCoverBtn">📷 Сменить обложку</button>
+</div>
             <div class="profile-avatar-wrapper">
                 <div class="profile-avatar-large" id="profileAvatarLarge">👤</div>
                 <button class="change-avatar-btn-large" id="changeAvatarBtn">📷</button>

@@ -217,10 +217,15 @@ function updateUserUI() {
     
     // Обложка профиля
     const profileCover = document.getElementById('profileCover');
-    if (profileCover && currentUser.cover) {
-        profileCover.style.backgroundImage = `url(${currentUser.cover})`;
-        profileCover.style.backgroundSize = 'cover';
-        profileCover.style.backgroundPosition = 'center';
+    if (profileCover) {
+        if (currentUser.cover) {
+            profileCover.style.backgroundImage = `url(${currentUser.cover})`;
+            profileCover.style.backgroundSize = 'cover';
+            profileCover.style.backgroundPosition = 'center';
+        } else {
+            // Дефолтная обложка
+            profileCover.style.backgroundImage = 'linear-gradient(135deg, #1a1a1a, #0a0a0a)';
+        }
     }
 }
 async function changeUserId() {
@@ -367,12 +372,35 @@ async function changeCover() {
         const file = e.target.files[0];
         if (!file) return;
         
+        showToast('Загрузка обложки...');
+        
         const reader = new FileReader();
         reader.onload = async (event) => {
             const coverData = event.target.result;
-            await firebaseUpdate(firebaseRef(db, 'users/' + currentUser.id), { cover: coverData });
-            document.getElementById('profileCover').style.backgroundImage = `url(${coverData})`;
-            showToast('Обложка обновлена');
+            
+            try {
+                // Сохраняем обложку в Firebase
+                await firebaseUpdate(firebaseRef(db, 'users/' + currentUser.id), { 
+                    cover: coverData 
+                });
+                
+                // Обновляем локальные данные
+                currentUser.cover = coverData;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Обновляем отображение
+                const profileCover = document.getElementById('profileCover');
+                if (profileCover) {
+                    profileCover.style.backgroundImage = `url(${coverData})`;
+                    profileCover.style.backgroundSize = 'cover';
+                    profileCover.style.backgroundPosition = 'center';
+                }
+                
+                showToast('✅ Обложка обновлена!');
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showToast('Ошибка при загрузке обложки', true);
+            }
         };
         reader.readAsDataURL(file);
     };
@@ -1187,7 +1215,47 @@ async function init() {
     await loadFeed();
     updateUserUI();
     checkMobile();
+    setupMobileNav();
     console.log('Готово!');
+}
+// ===== МОБИЛЬНОЕ МЕНЮ =====
+function setupMobileNav() {
+    const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+    const pages = document.querySelectorAll('.page');
+    
+    if (!mobileNavItems.length) return;
+    
+    mobileNavItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const pageName = item.dataset.page;
+            
+            // Обновляем активный класс в мобильном меню
+            mobileNavItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+            
+            // Показываем нужную страницу
+            pages.forEach(page => page.classList.remove('active'));
+            
+            if (pageName === 'profile') {
+                // Открываем модалку профиля вместо отдельной страницы
+                document.getElementById('profileModal').classList.add('show');
+                // Возвращаем активность на предыдущую страницу
+                const activePage = document.querySelector('.page.active');
+                if (activePage) activePage.classList.add('active');
+                mobileNavItems.forEach(nav => nav.classList.remove('active'));
+                const prevActive = document.querySelector(`.mobile-nav-item[data-page="${activePage?.id?.replace('Page', '')}"]`);
+                if (prevActive) prevActive.classList.add('active');
+            } else {
+                const targetPage = document.getElementById(`${pageName}Page`);
+                if (targetPage) targetPage.classList.add('active');
+            }
+            
+            // Обновляем ленту при переходе
+            if (pageName === 'feed') {
+                loadFeed();
+            }
+        });
+    });
 }
 
 init();
