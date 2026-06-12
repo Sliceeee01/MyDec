@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slicemes</title>
+    <title>Slicemes - Главная</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
         <header class="desktop-header">
             <div class="desktop-title">
                 <span class="title-icon">⬡</span>
-                MyDesktop
+                Slicemes
             </div>
             <div class="user-panel">
                 <div class="user-info" id="openProfileFromHeader" style="cursor:pointer">
@@ -84,14 +84,9 @@
             </div>
             <div class="form-group">
                 <label>ID друга</label>
-                <div class="input-wrapper">
-                    <span class="input-icon">🔍</span>
-                    <input type="text" id="friendIdInput" placeholder="Введите ID пользователя">
-                </div>
+                <input type="text" id="friendIdInput" placeholder="Введите ID пользователя">
             </div>
-            <button id="searchFriendBtn" class="submit-btn">
-                <span>Найти</span>
-            </button>
+            <button id="searchFriendBtn" class="submit-btn">Найти</button>
             <div id="searchResult" style="margin-top: 1rem;"></div>
             <p style="text-align:center; color: rgba(255,255,255,0.5); margin-top: 1rem;">
                 Ваш ID: <strong id="myIdInAddFriend">...</strong>
@@ -121,9 +116,7 @@
                             <span class="chat-status" id="chatStatus"></span>
                         </div>
                     </div>
-                    <div class="chat-actions">
-                        <button id="deleteChatBtn" class="delete-chat-btn" style="display:none" title="Удалить чат">🗑️</button>
-                    </div>
+                    <button id="deleteChatBtn" class="delete-chat-btn" style="display:none" title="Удалить чат">🗑️</button>
                 </div>
                 <div class="chat-messages" id="chatMessages">
                     <div class="no-chat-selected">
@@ -160,30 +153,22 @@
         <div class="modal-content profile-modal-content">
             <button class="close-modal" id="closeProfile">✕</button>
             
-            <!-- Шапка профиля с обложкой -->
-            <div class="profile-cover">
-                <div class="profile-cover-img" id="profileCover" style="background-image: linear-gradient(135deg, #1a1a1a, #0a0a0a);">
-                    <button class="change-cover-btn" id="changeCoverBtn" title="Сменить обложку">📷</button>
-                </div>
+            <div class="profile-cover" id="profileCover">
+                <button class="change-cover-btn" id="changeCoverBtn" title="Сменить обложку">📷</button>
                 <input type="file" id="coverInput" accept="image/*" style="display:none">
             </div>
             
-            <!-- Аватар -->
             <div class="profile-avatar-wrapper">
-                <div class="profile-avatar-large" id="profileAvatarLarge">
-                    👤
-                </div>
+                <div class="profile-avatar-large" id="profileAvatarLarge">👤</div>
                 <button class="change-avatar-btn-large" id="changeAvatarBtnLarge" title="Сменить аватар">📷</button>
                 <input type="file" id="avatarInputLarge" accept="image/*" style="display:none">
             </div>
             
-            <!-- Информация профиля -->
             <div class="profile-info-container">
                 <div class="profile-field">
                     <label>Имя пользователя</label>
                     <input type="text" id="profileName" placeholder="Ваше имя">
                     <div class="name-change-info" id="nameChangeInfo"></div>
-                    <div class="last-name-change" id="lastNameChange"></div>
                 </div>
                 
                 <div class="profile-field">
@@ -193,12 +178,12 @@
                 
                 <div class="profile-field">
                     <label>Email</label>
-                    <input type="email" id="profileEmail" readonly disabled style="opacity:0.6">
+                    <input type="email" id="profileEmail" readonly disabled>
                 </div>
                 
                 <div class="profile-field">
                     <label>Мой ID</label>
-                    <input type="text" id="profileId" readonly disabled style="opacity:0.6">
+                    <input type="text" id="profileId" readonly disabled>
                 </div>
                 
                 <button id="saveProfileBtn" class="submit-btn">Сохранить изменения</button>
@@ -206,14 +191,50 @@
         </div>
     </div>
 
-    <!-- Контекстное меню для сообщений -->
     <div id="messageContextMenu" class="context-menu" style="display:none">
-        <div class="context-menu-item" id="menuDeleteMessage">🗑️ Удалить сообщение</div>
+        <div class="context-menu-item" id="menuDeleteMessage">🗑️ Удалить</div>
         <div class="context-menu-item" id="menuPinMessage">📌 Закрепить</div>
         <div class="context-menu-item" id="menuUnpinMessage" style="display:none">📌 Открепить</div>
-        <div class="context-menu-item" id="menuCopyText">📋 Копировать текст</div>
+        <div class="context-menu-item" id="menuCopyText">📋 Копировать</div>
     </div>
 
-    <script src="home.js"></script>
+    <div id="toast" class="toast" style="display: none;"></div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getDatabase, ref, set, get, push, update, child, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCK5MTHhq15C_aFTS2prR2QrM-U4F2kgJo",
+            authDomain: "mydesktop-chat.firebaseapp.com",
+            databaseURL: "https://mydesktop-chat-default-rtdb.firebaseio.com",
+            projectId: "mydesktop-chat",
+            storageBucket: "mydesktop-chat.firebasestorage.app",
+            messagingSenderId: "422339167016",
+            appId: "1:422339167016:web:faa470c10bd0ccdef9861d"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        // Сохраняем в window
+        window.db = db;
+        window.firebaseRef = ref;
+        window.firebaseSet = set;
+        window.firebaseGet = get;
+        window.firebasePush = push;
+        window.firebaseUpdate = update;
+        window.firebaseOnValue = onValue;
+        window.firebaseRemove = remove;
+        
+        // Ждем 1 секунду и загружаем home.js
+        setTimeout(() => {
+            const script = document.createElement('script');
+            script.src = 'home.js';
+            script.onload = () => console.log('home.js загружен');
+            script.onerror = () => console.error('Ошибка загрузки home.js');
+            document.body.appendChild(script);
+        }, 100);
+    </script>
 </body>
 </html>
