@@ -132,6 +132,14 @@ async function loadCurrentUser() {
     
     for (let key in users) {
         if (users[key].email === currentUser.email) {
+            // ===== ПРОВЕРКА НА БЛОКИРОВКУ =====
+            if (users[key].isBanned && users[key].banExpires > Date.now()) {
+                localStorage.removeItem('currentUser');
+                alert('❌ Ваш аккаунт заблокирован!');
+                window.location.href = 'index.html';
+                return;
+            }
+            
             currentUser.id = key;
             currentUser.friends = users[key].friends || [];
             currentUser.avatar = users[key].avatar;

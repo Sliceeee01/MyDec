@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Slicemes - Админ панель</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Дополнительные стили для админки */
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .admin-title {
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .admin-stat-card {
+            background: rgba(20,20,20,0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .admin-stat-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: #00ff88;
+        }
+        
+        .admin-stat-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 5px;
+        }
+        
+        .users-table {
+            background: rgba(20,20,20,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .users-table-header {
+            display: grid;
+            grid-template-columns: 50px 1fr 1.5fr 1fr 100px 100px 80px;
+            background: rgba(0,0,0,0.5);
+            padding: 12px 15px;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .user-row {
+            display: grid;
+            grid-template-columns: 50px 1fr 1.5fr 1fr 100px 100px 80px;
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            align-items: center;
+            font-size: 13px;
+        }
+        
+        .user-row:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        .user-avatar-small {
+            width: 35px;
+            height: 35px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .user-avatar-small img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .ban-badge {
+            background: #ff4444;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            display: inline-block;
+        }
+        
+        .active-badge {
+            background: #00ff88;
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            display: inline-block;
+        }
+        
+        .admin-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+            margin: 0 2px;
+        }
+        
+        .admin-btn-danger {
+            background: rgba(255,68,68,0.2);
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+        
+        .admin-btn-danger:hover {
+            background: rgba(255,68,68,0.4);
+        }
+        
+        .admin-btn-warning {
+            background: rgba(255,170,0,0.2);
+            border-color: #ffaa00;
+            color: #ffaa00;
+        }
+        
+        .admin-btn-success {
+            background: rgba(0,255,136,0.2);
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+        
+        .ban-duration {
+            width: 60px;
+            padding: 4px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            font-size: 11px;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .users-table-header {
+                display: none;
+            }
+            
+            .user-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                padding: 15px;
+            }
+            
+            .user-row > div {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .user-row > div::before {
+                content: attr(data-label);
+                font-size: 11px;
+                color: rgba(255,255,255,0.5);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles"></div>
+    
+    <div class="admin-container">
+        <div class="admin-header">
+            <div class="admin-title">
+                <span class="title-icon">⬡</span>
+                Slicemes - Админ панель
+            </div>
+            <button id="logoutAdminBtn" class="logout-btn">🚪 Выйти</button>
+        </div>
+        
+        <div class="admin-stats">
+            <div class="admin-stat-card">
+                <div class="admin-stat-value" id="totalUsers">0</div>
+                <div class="admin-stat-label">Всего пользователей</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-value" id="activeUsers">0</div>
+                <div class="admin-stat-label">Активных</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-value" id="bannedUsers">0</div>
+                <div class="admin-stat-label">Заблокированных</div>
+            </div>
+        </div>
+        
+        <div class="users-table">
+            <div class="users-table-header">
+                <div>Аватар</div>
+                <div>Имя</div>
+                <div>Email / ID</div>
+                <div>Регистрация</div>
+                <div>Статус</div>
+                <div>Блокировка</div>
+                <div>Действия</div>
+            </div>
+            <div id="usersList"></div>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast" style="display: none;"></div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getDatabase, ref, get, update, remove } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCK5MTHhq15C_aFTS2prR2QrM-U4F2kgJo",
+            authDomain: "mydesktop-chat.firebaseapp.com",
+            databaseURL: "https://mydesktop-chat-default-rtdb.firebaseio.com",
+            projectId: "mydesktop-chat",
+            storageBucket: "mydesktop-chat.firebasestorage.app",
+            messagingSenderId: "422339167016",
+            appId: "1:422339167016:web:faa470c10bd0ccdef9861d"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        let currentAdmin = null;
+        
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + (isError ? 'toast-error' : 'toast-success');
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                    toast.style.opacity = '1';
+                }, 300);
+            }, 3000);
+        }
+        
+        async function loadUsers() {
+            const usersRef = ref(db, 'users');
+            const snapshot = await get(usersRef);
+            const users = snapshot.val();
+            
+            if (!users) return;
+            
+            const usersArray = Object.entries(users).map(([key, user]) => ({
+                id: key,
+                ...user
+            }));
+            
+            const total = usersArray.length;
+            const active = usersArray.filter(u => !u.isBanned || u.banExpires < Date.now()).length;
+            const banned = usersArray.filter(u => u.isBanned && u.banExpires > Date.now()).length;
+            
+            document.getElementById('totalUsers').textContent = total;
+            document.getElementById('activeUsers').textContent = active;
+            document.getElementById('bannedUsers').textContent = banned;
+            
+            const container = document.getElementById('usersList');
+            container.innerHTML = usersArray.map(user => {
+                const isBanned = user.isBanned && user.banExpires > Date.now();
+                const banExpires = user.banExpires ? new Date(user.banExpires).toLocaleString() : '—';
+                const regDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—';
+                
+                return `
+                    <div class="user-row" data-id="${user.id}">
+                        <div data-label="Аватар">
+                            <div class="user-avatar-small">
+                                ${user.avatar ? `<img src="${user.avatar}">` : '👤'}
+                            </div>
+                        </div>
+                        <div data-label="Имя"><strong>${escapeHtml(user.name || '—')}</strong></div>
+                        <div data-label="Email / ID">
+                            ${escapeHtml(user.email || '—')}<br>
+                            <span style="font-size:10px;color:#888">${escapeHtml(user.uniqueId || '—')}</span>
+                        </div>
+                        <div data-label="Регистрация">${regDate}</div>
+                        <div data-label="Статус">
+                            ${isBanned ? 
+                                `<span class="ban-badge">Заблокирован до ${new Date(user.banExpires).toLocaleDateString()}</span>` : 
+                                `<span class="active-badge">Активен</span>`
+                            }
+                        </div>
+                        <div data-label="Блокировка">
+                            <select class="ban-duration" id="banSelect_${user.id}">
+                                <option value="0">Снять</option>
+                                <option value="1">1 час</option>
+                                <option value="24">1 день</option>
+                                <option value="168">7 дней</option>
+                                <option value="720">30 дней</option>
+                                <option value="forever">Навсегда</option>
+                            </select>
+                        </div>
+                        <div data-label="Действия">
+                            <button class="admin-btn admin-btn-danger" onclick="deleteUser('${user.id}')">🗑️ Удалить</button>
+                            <button class="admin-btn admin-btn-warning" onclick="applyBan('${user.id}')">🔨 Блок</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        window.deleteUser = async (userId) => {
+            if (confirm('Удалить пользователя навсегда? Все данные будут потеряны!')) {
+                await remove(ref(db, 'users/' + userId));
+                await remove(ref(db, 'messages/' + userId));
+                showToast('Пользователь удален');
+                await loadUsers();
+            }
+        };
+        
+        window.applyBan = async (userId) => {
+            const select = document.getElementById(`banSelect_${userId}`);
+            const hours = parseInt(select.value);
+            
+            let banExpires = null;
+            let isBanned = false;
+            
+            if (hours === 0) {
+                isBanned = false;
+                banExpires = null;
+                showToast('Блокировка снята');
+            } else if (hours === 'forever') {
+                isBanned = true;
+                banExpires = 9999999999999;
+                showToast('Пользователь заблокирован навсегда');
+            } else {
+                isBanned = true;
+                banExpires = Date.now() + (hours * 60 * 60 * 1000);
+                showToast(`Пользователь заблокирован на ${hours} часов`);
+            }
+            
+            await update(ref(db, 'users/' + userId), {
+                isBanned: isBanned,
+                banExpires: banExpires
+            });
+            
+            await loadUsers();
+        };
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        async function checkAdmin() {
+            const adminSession = sessionStorage.getItem('adminSession');
+            if (!adminSession) {
+                window.location.href = 'index.html';
+                return;
+            }
+            currentAdmin = JSON.parse(adminSession);
+            if (currentAdmin.email !== 'admin@mail.ru') {
+                window.location.href = 'index.html';
+            }
+        }
+        
+        document.getElementById('logoutAdminBtn').onclick = () => {
+            sessionStorage.removeItem('adminSession');
+            window.location.href = 'index.html';
+        };
+        
+        await checkAdmin();
+        await loadUsers();
+        
+        console.log('Админ панель загружена');
+    </script>
+</body>
+</html>

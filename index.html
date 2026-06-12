@@ -321,35 +321,53 @@
         };
         
         // ========== ВХОД ==========
-        document.getElementById('loginForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const identifier = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            
-            if (!identifier || !password) {
-                showToast('Заполните все поля', true);
-                return;
-            }
-            
-            const user = await findUserByIdentifier(identifier);
-            
-            if (user && user.password === password) {
-                const userData = {
-                    email: user.email,
-                    name: user.name,
-                    uniqueId: user.uniqueId
-                };
-                
-                localStorage.setItem('currentUser', JSON.stringify(userData));
-                showToast(`✅ Добро пожаловать, ${user.name}!`);
-                
-                setTimeout(() => {
-                    window.location.href = 'home.html';
-                }, 500);
-            } else {
-                showToast('❌ Неверный email/ID или пароль', true);
-            }
+document.getElementById('loginForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const identifier = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!identifier || !password) {
+        showToast('Заполните все поля', true);
+        return;
+    }
+    
+    // ===== ПРОВЕРКА НА АДМИНА =====
+    if (identifier === 'admin' && password === 'iyu533gdk4re4') {
+        sessionStorage.setItem('adminSession', JSON.stringify({ email: 'admin@mail.ru', isAdmin: true }));
+        showToast('✅ Вход в админ-панель');
+        setTimeout(() => {
+            window.location.href = 'admin.html';
+        }, 500);
+        return;
+    }
+    
+    // ===== ПРОВЕРКА НА ОБЫЧНОГО ПОЛЬЗОВАТЕЛЯ =====
+    const user = await findUserByIdentifier(identifier);
+    
+    if (user && user.password === password) {
+        // Проверка на блокировку
+        if (user.isBanned && user.banExpires > Date.now()) {
+            const banDate = new Date(user.banExpires).toLocaleString();
+            showToast(`❌ Ваш аккаунт заблокирован до ${banDate}`, true);
+            return;
+        }
+        
+        const userData = {
+            email: user.email,
+            name: user.name,
+            uniqueId: user.uniqueId
         };
+        
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        showToast(`✅ Добро пожаловать, ${user.name}!`);
+        
+        setTimeout(() => {
+            window.location.href = 'home.html';
+        }, 500);
+    } else {
+        showToast('❌ Неверный email/ID или пароль', true);
+    }
+};
         
         // ========== ВОССТАНОВЛЕНИЕ ==========
         document.getElementById('forgotForm').onsubmit = async (e) => {
