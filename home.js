@@ -226,44 +226,20 @@ class HomeApp {
     checkAuth() {
         const saved = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
         
+        console.log('checkAuth - saved:', saved);
+        
         if (!saved) {
+            console.log('Нет сохраненного пользователя');
             window.location.replace('index.html');
             return false;
         }
         
         try {
             this.currentUser = JSON.parse(saved);
-            const userExists = this.db.findUserByEmail(this.currentUser.email);
+            console.log('Пользователь загружен:', this.currentUser);
             
-            if (!userExists) {
-                localStorage.removeItem('currentUser');
-                sessionStorage.removeItem('currentUser');
-                window.location.replace('index.html');
-                return false;
-            }
-            
-            const userFromDb = this.db.findUserByEmail(this.currentUser.email);
-            if (userFromDb && userFromDb.uniqueId !== this.currentUser.uniqueId) {
-                this.currentUser.uniqueId = userFromDb.uniqueId;
-                this.currentUser.name = userFromDb.name;
-                this.currentUser.avatar = userFromDb.avatar;
-                this.currentUser.bio = userFromDb.bio;
-                this.currentUser.cover = userFromDb.cover;
-                
-                const updatedUserData = {
-                    email: userFromDb.email,
-                    name: userFromDb.name,
-                    uniqueId: userFromDb.uniqueId,
-                    avatar: userFromDb.avatar,
-                    bio: userFromDb.bio,
-                    cover: userFromDb.cover
-                };
-                if (localStorage.getItem('currentUser')) {
-                    localStorage.setItem('currentUser', JSON.stringify(updatedUserData));
-                } else {
-                    sessionStorage.setItem('currentUser', JSON.stringify(updatedUserData));
-                }
-            }
+            // ВАЖНО: НЕ проверяем в БД здесь, чтобы не было асинхронной задержки
+            // Просто возвращаем true, пользователь уже авторизован в localStorage
             
             return true;
         } catch (error) {
@@ -281,6 +257,7 @@ class HomeApp {
         this.updateUI();
         this.startPolling();
         this.initContextMenu();
+        console.log('HomeApp инициализирован. Ваш ID:', this.currentUser.uniqueId);
     }
 
     cacheAllDOM() {
