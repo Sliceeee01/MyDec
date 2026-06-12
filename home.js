@@ -1,20 +1,42 @@
 // ============================================
-// ДЛЯ РАБОТЫ С FIREBASE
+// ГЛАВНОЕ ПРИЛОЖЕНИЕ SLICEMES
 // ============================================
-let db, firebaseRef, firebaseSet, firebaseGet, firebasePush, firebaseUpdate, firebaseOnValue, firebaseRemove;
+
+let currentUser = null;
+let currentChat = null;
+let messageUnsubscribe = null;
+
+// API ключ FreeImage.host (твой ключ)
+const FREEIMAGE_API_KEY = '6d207e02198a847aa98d0a2a901485a5';
+
+// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function showToast(message, isError = false) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.className = 'toast ' + (isError ? 'toast-error' : 'toast-success');
+    toast.style.display = 'block';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            toast.style.display = 'none';
+            toast.style.opacity = '1';
+        }, 300);
+    }, 3000);
+}
 
 function waitForFirebase() {
     return new Promise((resolve) => {
         const checkInterval = setInterval(() => {
             if (window.db) {
-                db = window.db;
-                firebaseRef = window.firebaseRef;
-                firebaseSet = window.firebaseSet;
-                firebaseGet = window.firebaseGet;
-                firebasePush = window.firebasePush;
-                firebaseUpdate = window.firebaseUpdate;
-                firebaseOnValue = window.firebaseOnValue;
-                firebaseRemove = window.firebaseRemove;
                 clearInterval(checkInterval);
                 console.log('Firebase готов');
                 resolve();
@@ -23,813 +45,805 @@ function waitForFirebase() {
     });
 }
 
-// ============================================
-// БАЗА ДАННЫХ
-// ============================================
-class Database {
-    async findUserByEmail(email) {
-        await waitForFirebase();
-        const usersRef = firebaseRef(db, 'users');
-        const snapshot = await firebaseGet(usersRef);
-        const users = snapshot.val();
-        if (!users) return null;
+// ========== ФУНКЦИИ ЗАГРУЗКИ МЕДИА ==========
+
+async function uploadToFreeImage(file) {
+    const formData = new FormData();
+    formData.append('source', file);
+    formData.append('key', FREEIMAGE_API_KEY);
+    
+    try {
+        const response = await fetch('https://freeimage.host/api/1/upload', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
         
-        for (let key in users) {
-            if (users[key].email === email.toLowerCase()) {
-                return { ...users[key], id: key };
-            }
+        if (result.status_code === 200) {
+            return {
+                url: result.image.url,
+                thumb: result.image.thumb?.url || result.image.url
+            };
+        } else {
+            throw new Error(result.error?.message || 'Ошибка загрузки');
         }
+    } catch (error) {
+        console.error('Ошибка загрузки:', error);
         return null;
-    }
-
-    async findUserByUniqueId(uniqueId) {
-        await waitForFirebase();
-        const usersRef = firebaseRef(db, 'users');
-        const snapshot = await firebaseGet(usersRef);
-        const users = snapshot.val();
-        if (!users) return null;
-        
-        for (let key in users) {
-            if (users[key].uniqueId === uniqueId.toUpperCase()) {
-                return { ...users[key], id: key };
-            }
-        }
-        return null;
-    }
-
-    async addFriend(userEmail, friendId) {
-        await waitForFirebase();
-        const user = await this.findUserByEmail(userEmail);
-        const friend = await this.findUserByUniqueId(friendId);
-        
-        if (!user || !friend || user.email === friend.email) return false;
-        
-        if (!user.friends) user.friends = [];
-        if (!friend.friends) friend.friends = [];
-        
-        if (!user.friends.includes(friendId)) {
-            user.friends.push(friendId);
-            await firebaseUpdate(firebaseRef(db, 'users/' + user.id), { friends: user.friends });
-        }
-        
-        if (!friend.friends.includes(user.uniqueId)) {
-            friend.friends.push(user.uniqueId);
-            await firebaseUpdate(firebaseRef(db, 'users/' + friend.id), { friends: friend.friends });
-        }
-        
-        return true;
-    }
-
-    async removeFriend(userEmail, friendId) {
-        await waitForFirebase();
-        const user = await this.findUserByEmail(userEmail);
-        const friend = await this.findUserByUniqueId(friendId);
-        
-        if (!user || !friend) return false;
-        
-        if (user.friends) {
-            user.friends = user.friends.filter(id => id !== friendId);
-            await firebaseUpdate(firebaseRef(db, 'users/' + user.id), { friends: user.friends });
-        }
-        
-        if (friend.friends) {
-            friend.friends = friend.friends.filter(id => id !== user.uniqueId);
-            await firebaseUpdate(firebaseRef(db, 'users/' + friend.id), { friends: friend.friends });
-        }
-        
-        return true;
-    }
-
-    async getFriends(userEmail) {
-        await waitForFirebase();
-        const user = await this.findUserByEmail(userEmail);
-        if (!user || !user.friends || user.friends.length === 0) return [];
-        
-        const friends = [];
-        for (let friendId of user.friends) {
-            const friend = await this.findUserByUniqueId(friendId);
-            if (friend) {
-                friends.push({
-                    uniqueId: friend.uniqueId,
-                    name: friend.name,
-                    email: friend.email,
-                    avatar: friend.avatar,
-                    bio: friend.bio
-                });
-            }
-        }
-        return friends;
-    }
-
-    async updateUser(email, updates) {
-        await waitForFirebase();
-        const user = await this.findUserByEmail(email);
-        if (user) {
-            await firebaseUpdate(firebaseRef(db, 'users/' + user.id), updates);
-            return true;
-        }
-        return false;
     }
 }
 
-// ============================================
-// МЕНЕДЖЕР СООБЩЕНИЙ
-// ============================================
-class MessageManager {
-    async send(fromId, toId, text, image = null) {
-        await waitForFirebase();
-        const chatId = [fromId, toId].sort().join('___');
-        const messagesRef = firebaseRef(db, 'messages/' + chatId);
-        const newMessageRef = firebasePush(messagesRef);
-        
-        await firebaseSet(newMessageRef, {
-            id: Date.now(),
-            from: fromId,
-            to: toId,
-            text: text,
-            image: image,
-            pinned: false,
-            time: new Date().toISOString(),
-            read: false
-        });
-    }
+function getFileType(file) {
+    if (file.type.startsWith('image/')) return 'image';
+    if (file.type.startsWith('video/')) return 'video';
+    return 'unknown';
+}
 
-    async getConversation(id1, id2) {
-        await waitForFirebase();
-        const chatId = [id1, id2].sort().join('___');
-        const messagesRef = firebaseRef(db, 'messages/' + chatId);
-        const snapshot = await firebaseGet(messagesRef);
-        const messages = snapshot.val();
-        if (!messages) return [];
-        return Object.values(messages).sort((a, b) => a.id - b.id);
-    }
-
-    async getUnreadCount(userId) {
-        await waitForFirebase();
-        const messagesRef = firebaseRef(db, 'messages');
-        const snapshot = await firebaseGet(messagesRef);
-        const allMessages = snapshot.val();
-        let count = 0;
-        
-        if (allMessages) {
-            for (let chatId in allMessages) {
-                for (let key in allMessages[chatId]) {
-                    if (allMessages[chatId][key].to === userId && !allMessages[chatId][key].read) count++;
-                }
-            }
+function setupMediaPreview() {
+    const fileInput = document.getElementById('postMediaFile');
+    const preview = document.getElementById('mediaPreview');
+    if (!fileInput) return;
+    
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+            preview.innerHTML = '';
+            return;
         }
-        return count;
-    }
-
-    async markAsRead(fromId, toId) {
-        await waitForFirebase();
-        const chatId = [fromId, toId].sort().join('___');
-        const messagesRef = firebaseRef(db, 'messages/' + chatId);
-        const snapshot = await firebaseGet(messagesRef);
-        const messages = snapshot.val();
         
-        if (messages) {
-            for (let key in messages) {
-                if (messages[key].to === toId && !messages[key].read) {
-                    await firebaseUpdate(firebaseRef(db, 'messages/' + chatId + '/' + key), { read: true });
-                }
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            if (file.type.startsWith('image/')) {
+                preview.innerHTML = `<img src="${event.target.result}" style="max-width:100%; max-height:150px; border-radius:8px;">`;
+            } else if (file.type.startsWith('video/')) {
+                preview.innerHTML = `<video src="${event.target.result}" controls style="max-width:100%; max-height:150px; border-radius:8px;"></video>`;
             }
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// ========== ЗАГРУЗКА ДРУЗЕЙ (ТОЛЬКО ДРУЗЬЯ) ==========
+
+async function loadFriends() {
+    const usersRef = firebaseRef(db, 'users');
+    const snapshot = await firebaseGet(usersRef);
+    const users = snapshot.val();
+    if (!users) return;
+    
+    let currentUserData = null;
+    let currentUserKey = null;
+    for (let key in users) {
+        if (users[key].email === currentUser.email) {
+            currentUserData = users[key];
+            currentUserKey = key;
+            break;
         }
     }
-
-    async deleteChat(id1, id2) {
-        await waitForFirebase();
-        const chatId = [id1, id2].sort().join('___');
-        await firebaseRemove(firebaseRef(db, 'messages/' + chatId));
+    
+    if (!currentUserData) return;
+    
+    const friendsIds = currentUserData.friends || [];
+    
+    const friendsList = [];
+    for (let friendId of friendsIds) {
+        for (let key in users) {
+            if (users[key].uniqueId === friendId) {
+                friendsList.push({
+                    id: key,
+                    name: users[key].name,
+                    email: users[key].email,
+                    uniqueId: users[key].uniqueId,
+                    avatar: users[key].avatar
+                });
+                break;
+            }
+        }
     }
+    
+    renderFriends(friendsList);
+    renderChats(friendsList);
+}
 
-    async getLastMessage(id1, id2) {
-        const conv = await this.getConversation(id1, id2);
-        return conv[conv.length - 1];
+function renderFriends(friends) {
+    const container = document.getElementById('friendsGrid');
+    if (!friends.length) {
+        container.innerHTML = '<div class="empty-state">У вас пока нет друзей<br><br>👉 Нажмите "➕ Добавить друга" чтобы найти друзей по ID</div>';
+        return;
     }
-
-    subscribeToMessages(id1, id2, callback) {
-        const chatId = [id1, id2].sort().join('___');
-        const messagesRef = firebaseRef(db, 'messages/' + chatId);
-        
-        return firebaseOnValue(messagesRef, (snapshot) => {
-            const messages = snapshot.val();
-            if (messages) {
-                const messagesArray = Object.values(messages).sort((a, b) => a.id - b.id);
-                callback(messagesArray);
-            } else {
-                callback([]);
+    
+    container.innerHTML = friends.map(friend => `
+        <div class="friend-card" data-id="${friend.uniqueId}">
+            <div class="friend-avatar">${friend.avatar ? `<img src="${friend.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤'}</div>
+            <div class="friend-info">
+                <div class="friend-name">${escapeHtml(friend.name)}</div>
+                <div class="friend-id">${friend.uniqueId}</div>
+            </div>
+            <div class="friend-actions">
+                <button class="friend-msg-btn" data-id="${friend.uniqueId}" data-name="${escapeHtml(friend.name)}">💬</button>
+                <button class="friend-remove-btn" data-id="${friend.uniqueId}">✕</button>
+            </div>
+        </div>
+    `).join('');
+    
+    document.querySelectorAll('.friend-msg-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const friendId = btn.dataset.id;
+            const friendName = btn.dataset.name;
+            openChat(friendId, friendName);
+            document.querySelector('.nav-item[data-page="chats"]').click();
+        });
+    });
+    
+    document.querySelectorAll('.friend-remove-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const friendId = btn.dataset.id;
+            if (confirm('Удалить друга?')) {
+                await removeFriend(friendId);
             }
         });
+    });
+}
+
+function renderChats(friends) {
+    const container = document.getElementById('chatsList');
+    if (!friends.length) {
+        container.innerHTML = '<div class="empty-state">Нет чатов<br><br>👉 Добавьте друзей чтобы начать общение</div>';
+        return;
+    }
+    
+    container.innerHTML = friends.map(friend => `
+        <div class="chat-item" data-id="${friend.uniqueId}" data-name="${escapeHtml(friend.name)}">
+            <div class="chat-item-avatar">${friend.avatar ? `<img src="${friend.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤'}</div>
+            <div class="chat-item-info">
+                <div class="chat-item-name">${escapeHtml(friend.name)}</div>
+                <div class="chat-item-lastmsg">Нажмите для чата</div>
+            </div>
+        </div>
+    `).join('');
+    
+    document.querySelectorAll('.chat-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const friendId = item.dataset.id;
+            const friendName = item.dataset.name;
+            openChat(friendId, friendName);
+        });
+    });
+}
+
+async function removeFriend(friendId) {
+    const usersRef = firebaseRef(db, 'users');
+    const snapshot = await firebaseGet(usersRef);
+    const users = snapshot.val();
+    
+    let currentUserKey = null;
+    let friendUserKey = null;
+    
+    for (let key in users) {
+        if (users[key].email === currentUser.email) {
+            currentUserKey = key;
+        }
+        if (users[key].uniqueId === friendId) {
+            friendUserKey = key;
+        }
+    }
+    
+    if (currentUserKey && friendUserKey) {
+        let currentFriends = users[currentUserKey].friends || [];
+        currentFriends = currentFriends.filter(id => id !== friendId);
+        await firebaseUpdate(firebaseRef(db, 'users/' + currentUserKey), { friends: currentFriends });
+        
+        let friendFriends = users[friendUserKey].friends || [];
+        friendFriends = friendFriends.filter(id => id !== currentUser.uniqueId);
+        await firebaseUpdate(firebaseRef(db, 'users/' + friendUserKey), { friends: friendFriends });
+        
+        showToast('Друг удален');
+        await loadFriends();
+        await loadChats();
+        
+        if (currentChat && currentChat.id === friendId) {
+            document.getElementById('chatMessagesArea').innerHTML = '<div class="empty-chat"><div class="empty-chat-icon">💬</div><p>Чат закрыт</p></div>';
+            document.getElementById('chatAreaHeader').style.display = 'none';
+            document.getElementById('chatInputArea').style.display = 'none';
+            currentChat = null;
+            if (messageUnsubscribe) {
+                messageUnsubscribe();
+                messageUnsubscribe = null;
+            }
+        }
     }
 }
 
-// ============================================
-// ГЛАВНОЕ ПРИЛОЖЕНИЕ
-// ============================================
-class HomeApp {
-    constructor() {
-        this.currentUser = null;
-        this.selectedChat = null;
-        this.selectedMessageId = null;
-        this.db = new Database();
-        this.msg = new MessageManager();
-        this.messageUnsubscribe = null;
-        
-        this.init();
-    }
+// ========== ПОИСК И ДОБАВЛЕНИЕ ДРУГА ==========
 
-    async init() {
-        await this.checkAuth();
-        await this.loadUserData();
-        this.cacheAllDOM();
-        this.bindAllEvents();
-        await this.updateUI();
-        this.startPolling();
-        this.initContextMenu();
-        console.log('HomeApp готов');
+async function searchAndAddFriend() {
+    const friendId = document.getElementById('friendIdInput').value.trim().toUpperCase();
+    if (!friendId) {
+        showToast('Введите ID друга', true);
+        return;
     }
-
-    async checkAuth() {
-        const saved = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-        
-        if (!saved) {
-            window.location.replace('index.html');
-            return;
-        }
-        
-        try {
-            this.currentUser = JSON.parse(saved);
-            console.log('Пользователь:', this.currentUser.name);
-        } catch (error) {
-            console.error('Ошибка:', error);
-            window.location.replace('index.html');
+    
+    if (friendId === currentUser.uniqueId) {
+        showToast('Нельзя добавить самого себя', true);
+        return;
+    }
+    
+    const usersRef = firebaseRef(db, 'users');
+    const snapshot = await firebaseGet(usersRef);
+    const users = snapshot.val();
+    
+    let foundUser = null;
+    let foundUserKey = null;
+    for (let key in users) {
+        if (users[key].uniqueId === friendId) {
+            foundUser = { ...users[key], id: key };
+            foundUserKey = key;
+            break;
         }
     }
-
-    async loadUserData() {
-        const userFromDb = await this.db.findUserByEmail(this.currentUser.email);
-        if (userFromDb) {
-            this.currentUser.id = userFromDb.id;
-            this.currentUser.friends = userFromDb.friends || [];
-            this.currentUser.avatar = userFromDb.avatar;
-            this.currentUser.bio = userFromDb.bio;
-            this.currentUser.cover = userFromDb.cover;
+    
+    if (!foundUser) {
+        showToast('Пользователь не найден', true);
+        return;
+    }
+    
+    let currentUserKey = null;
+    for (let key in users) {
+        if (users[key].email === currentUser.email) {
+            currentUserKey = key;
+            break;
         }
     }
-
-    cacheAllDOM() {
-        this.elUserName = document.getElementById('userDisplayName');
-        this.elUserId = document.getElementById('userUniqueId');
-        this.elMyIdInAdd = document.getElementById('myIdInAddFriend');
-        this.elLogoutBtn = document.getElementById('logoutBtn');
-        this.elFriendsCount = document.getElementById('friendsCount');
-        this.elUnreadCount = document.getElementById('unreadCount');
-        this.elFriendsList = document.getElementById('friendsList');
-        this.elAllFriendsList = document.getElementById('allFriendsList');
-        
-        this.modalAddFriend = document.getElementById('addFriendModal');
-        this.modalMessages = document.getElementById('messagesModal');
-        this.modalFriendsList = document.getElementById('friendsListModal');
-        this.modalProfile = document.getElementById('profileModal');
-        
-        this.btnOpenMessages = document.getElementById('btnOpenMessages');
-        this.btnOpenAddFriend = document.getElementById('btnOpenAddFriend');
-        this.btnOpenFriendsList = document.getElementById('btnOpenFriendsList');
-        this.btnOpenProfile = document.getElementById('btnOpenProfile');
-        this.btnFriends = document.getElementById('btnFriends');
-        this.btnMessages = document.getElementById('btnMessages');
-        this.openProfileFromHeader = document.getElementById('openProfileFromHeader');
-        
-        this.btnCloseAddFriend = document.getElementById('closeAddFriend');
-        this.btnCloseMessages = document.getElementById('closeMessages');
-        this.btnCloseFriendsList = document.getElementById('closeFriendsList');
-        this.btnCloseProfile = document.getElementById('closeProfile');
-        
-        this.inputFriendId = document.getElementById('friendIdInput');
-        this.btnSearchFriend = document.getElementById('searchFriendBtn');
-        this.elSearchResult = document.getElementById('searchResult');
-        
-        this.elUserSearch = document.getElementById('userSearch');
-        this.elChatMessages = document.getElementById('chatMessages');
-        this.elChatUserName = document.getElementById('chatUserName');
-        this.elChatStatus = document.getElementById('chatStatus');
-        this.inputMessage = document.getElementById('messageInput');
-        this.btnSendMessage = document.getElementById('sendMessageBtn');
-        this.btnDeleteChat = document.getElementById('deleteChatBtn');
-        this.btnAttachImage = document.getElementById('attachImageBtn');
-        this.imageInput = document.getElementById('imageInput');
-        
-        this.headerAvatar = document.getElementById('headerAvatar');
-        this.profileAvatarLarge = document.getElementById('profileAvatarLarge');
-        this.profileCover = document.getElementById('profileCover');
-        this.changeAvatarBtn = document.getElementById('changeAvatarBtnLarge');
-        this.avatarInput = document.getElementById('avatarInputLarge');
-        this.changeCoverBtn = document.getElementById('changeCoverBtn');
-        this.coverInput = document.getElementById('coverInput');
-        this.profileName = document.getElementById('profileName');
-        this.profileBio = document.getElementById('profileBio');
-        this.profileEmail = document.getElementById('profileEmail');
-        this.profileId = document.getElementById('profileId');
-        this.saveProfileBtn = document.getElementById('saveProfileBtn');
-        this.nameChangeInfo = document.getElementById('nameChangeInfo');
-        
-        this.contextMenu = document.getElementById('messageContextMenu');
-        this.menuDeleteMessage = document.getElementById('menuDeleteMessage');
-        this.menuPinMessage = document.getElementById('menuPinMessage');
-        this.menuUnpinMessage = document.getElementById('menuUnpinMessage');
-        this.menuCopyText = document.getElementById('menuCopyText');
+    
+    const currentFriends = users[currentUserKey].friends || [];
+    if (currentFriends.includes(friendId)) {
+        showToast('Этот пользователь уже в друзьях', true);
+        return;
     }
+    
+    const resultDiv = document.getElementById('searchResultModal');
+    resultDiv.innerHTML = `
+        <div class="found-user">
+            <div>
+                <div style="font-weight:600;">${escapeHtml(foundUser.name)}</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.5);">${foundUser.email}</div>
+            </div>
+            <button class="add-friend-btn" id="confirmAddFriendBtn">Добавить</button>
+        </div>
+    `;
+    
+    document.getElementById('confirmAddFriendBtn').onclick = async () => {
+        let updatedFriends = currentFriends;
+        updatedFriends.push(friendId);
+        await firebaseUpdate(firebaseRef(db, 'users/' + currentUserKey), { friends: updatedFriends });
+        
+        let friendFriends = users[foundUserKey].friends || [];
+        if (!friendFriends.includes(currentUser.uniqueId)) {
+            friendFriends.push(currentUser.uniqueId);
+            await firebaseUpdate(firebaseRef(db, 'users/' + foundUserKey), { friends: friendFriends });
+        }
+        
+        showToast(`✅ ${foundUser.name} добавлен в друзья!`);
+        document.getElementById('addFriendModal').classList.remove('show');
+        document.getElementById('friendIdInput').value = '';
+        resultDiv.innerHTML = '';
+        await loadFriends();
+        await loadChats();
+    };
+}
 
-    bindAllEvents() {
-        this.elLogoutBtn.addEventListener('click', () => this.logout());
-        
-        if (this.btnOpenMessages) this.btnOpenMessages.addEventListener('click', () => this.openModal(this.modalMessages));
-        if (this.btnOpenAddFriend) this.btnOpenAddFriend.addEventListener('click', () => this.openModal(this.modalAddFriend));
-        if (this.btnOpenFriendsList) this.btnOpenFriendsList.addEventListener('click', () => this.openModal(this.modalFriendsList));
-        if (this.btnOpenProfile) this.btnOpenProfile.addEventListener('click', () => this.openProfileModal());
-        if (this.openProfileFromHeader) this.openProfileFromHeader.addEventListener('click', () => this.openProfileModal());
-        if (this.btnFriends) this.btnFriends.addEventListener('click', () => this.openModal(this.modalFriendsList));
-        if (this.btnMessages) this.btnMessages.addEventListener('click', () => this.openModal(this.modalMessages));
-        
-        if (this.btnCloseAddFriend) this.btnCloseAddFriend.addEventListener('click', () => this.closeModal(this.modalAddFriend));
-        if (this.btnCloseMessages) this.btnCloseMessages.addEventListener('click', () => this.closeModal(this.modalMessages));
-        if (this.btnCloseFriendsList) this.btnCloseFriendsList.addEventListener('click', () => this.closeModal(this.modalFriendsList));
-        if (this.btnCloseProfile) this.btnCloseProfile.addEventListener('click', () => this.closeModal(this.modalProfile));
-        
-        [this.modalAddFriend, this.modalMessages, this.modalFriendsList, this.modalProfile].forEach(modal => {
-            if (modal) modal.addEventListener('click', e => { if (e.target === modal) this.closeModal(modal); });
-        });
-        
-        if (this.btnSearchFriend) {
-            this.btnSearchFriend.addEventListener('click', () => this.searchFriend());
-            this.inputFriendId.addEventListener('keypress', e => { if (e.key === 'Enter') this.searchFriend(); });
-        }
-        
-        if (this.elUserSearch) this.elUserSearch.addEventListener('input', () => this.renderFriendsList());
-        
-        if (this.btnSendMessage) {
-            this.btnSendMessage.addEventListener('click', () => this.sendMessage());
-            this.inputMessage.addEventListener('keypress', e => { if (e.key === 'Enter') this.sendMessage(); });
-        }
-        
-        if (this.btnDeleteChat) this.btnDeleteChat.addEventListener('click', () => this.deleteCurrentChat());
-        
-        if (this.changeAvatarBtn) {
-            this.changeAvatarBtn.addEventListener('click', () => this.avatarInput.click());
-            this.avatarInput.addEventListener('change', (e) => this.handleAvatarChange(e));
-        }
-        
-        if (this.changeCoverBtn) {
-            this.changeCoverBtn.addEventListener('click', () => this.coverInput.click());
-            this.coverInput.addEventListener('change', (e) => this.handleCoverChange(e));
-        }
-        
-        if (this.saveProfileBtn) this.saveProfileBtn.addEventListener('click', () => this.saveProfileChanges());
-        
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') {
-                [this.modalAddFriend, this.modalMessages, this.modalFriendsList, this.modalProfile].forEach(m => {
-                    if (m && m.classList.contains('show')) this.closeModal(m);
-                });
-                this.hideContextMenu();
-            }
-        });
-        
-        document.addEventListener('click', () => this.hideContextMenu());
-        
-        if (this.menuDeleteMessage) {
-            this.menuDeleteMessage.addEventListener('click', () => this.deleteSelectedMessage());
-            this.menuPinMessage.addEventListener('click', () => this.pinSelectedMessage());
-            this.menuUnpinMessage.addEventListener('click', () => this.unpinSelectedMessage());
-            this.menuCopyText.addEventListener('click', () => this.copyMessageText());
-        }
+// ========== ЧАТЫ И СООБЩЕНИЯ ==========
+
+async function openChat(friendId, friendName) {
+    if (messageUnsubscribe) {
+        messageUnsubscribe();
     }
+    
+    currentChat = { id: friendId, name: friendName };
+    
+    document.getElementById('chatAreaHeader').style.display = 'flex';
+    document.getElementById('chatInputArea').style.display = 'flex';
+    document.getElementById('chatContactName').textContent = friendName;
+    document.getElementById('deleteChatBtn').style.display = 'block';
+    
+    const chatId = [currentUser.uniqueId, friendId].sort().join('___');
+    const messagesRef = firebaseRef(db, 'messages/' + chatId);
+    
+    messageUnsubscribe = firebaseOnValue(messagesRef, (snapshot) => {
+        const messages = snapshot.val();
+        renderMessages(messages ? Object.values(messages).sort((a,b) => a.id - b.id) : []);
+    });
+}
 
-    showToast(message, isError = false) {
-        const toast = document.getElementById('toast');
-        if (!toast) return;
-        toast.textContent = message;
-        toast.className = 'toast ' + (isError ? 'toast-error' : 'toast-success');
-        toast.style.display = 'block';
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => {
-                toast.style.display = 'none';
-                toast.style.opacity = '1';
-            }, 300);
-        }, 3000);
+function renderMessages(messages) {
+    const container = document.getElementById('chatMessagesArea');
+    
+    if (!messages.length) {
+        container.innerHTML = '<div class="empty-chat"><div class="empty-chat-icon">💬</div><p>Начните общение!</p></div>';
+        return;
     }
-
-    async updateUI() {
-        this.elUserName.textContent = this.currentUser.name;
-        this.elUserId.textContent = this.currentUser.uniqueId;
-        if (this.elMyIdInAdd) this.elMyIdInAdd.textContent = this.currentUser.uniqueId;
+    
+    container.innerHTML = messages.map(msg => {
+        const isSent = msg.from === currentUser.uniqueId;
+        const time = new Date(msg.time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
         
-        if (this.currentUser.avatar) {
-            this.headerAvatar.innerHTML = `<img src="${this.currentUser.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
-        }
-        
-        await this.updateCounts();
-    }
-
-    async updateCounts() {
-        const friends = await this.db.getFriends(this.currentUser.email);
-        this.elFriendsCount.textContent = friends.length;
-        this.elUnreadCount.textContent = await this.msg.getUnreadCount(this.currentUser.uniqueId);
-    }
-
-    openModal(modal) {
-        if (!modal) return;
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-        
-        if (modal === this.modalMessages) {
-            this.renderFriendsList();
-            this.updateCounts();
-        }
-        if (modal === this.modalFriendsList) this.renderAllFriends();
-        if (modal === this.modalAddFriend) {
-            if (this.inputFriendId) this.inputFriendId.value = '';
-            if (this.elSearchResult) this.elSearchResult.innerHTML = '';
-        }
-    }
-
-    closeModal(modal) {
-        if (!modal) return;
-        modal.classList.remove('show');
-        document.body.style.overflow = 'auto';
-    }
-
-    openProfileModal() {
-        this.loadProfileData();
-        this.openModal(this.modalProfile);
-    }
-
-    async loadProfileData() {
-        const user = await this.db.findUserByEmail(this.currentUser.email);
-        if (user) {
-            this.profileName.value = user.name;
-            this.profileBio.value = user.bio || '';
-            this.profileEmail.value = user.email;
-            this.profileId.value = user.uniqueId;
-            
-            if (user.avatar) {
-                this.profileAvatarLarge.innerHTML = `<img src="${user.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
-            }
-            
-            if (user.cover) {
-                this.profileCover.style.backgroundImage = `url(${user.cover})`;
-                this.profileCover.style.backgroundSize = 'cover';
-            }
-        }
-    }
-
-    async handleAvatarChange(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            await this.db.updateUser(this.currentUser.email, { avatar: event.target.result });
-            this.currentUser.avatar = event.target.result;
-            this.profileAvatarLarge.innerHTML = `<img src="${event.target.result}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
-            this.headerAvatar.innerHTML = `<img src="${event.target.result}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
-            this.showToast('Аватар обновлен');
-        };
-        reader.readAsDataURL(file);
-    }
-
-    async handleCoverChange(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            await this.db.updateUser(this.currentUser.email, { cover: event.target.result });
-            this.profileCover.style.backgroundImage = `url(${event.target.result})`;
-            this.profileCover.style.backgroundSize = 'cover';
-            this.showToast('Обложка обновлена');
-        };
-        reader.readAsDataURL(file);
-    }
-
-    async saveProfileChanges() {
-        const newName = this.profileName.value.trim();
-        const newBio = this.profileBio.value.trim();
-        
-        if (!newName) {
-            this.showToast('Имя не может быть пустым', true);
-            return;
-        }
-        
-        await this.db.updateUser(this.currentUser.email, { name: newName, bio: newBio });
-        this.currentUser.name = newName;
-        this.currentUser.bio = newBio;
-        
-        const savedUser = JSON.parse(localStorage.getItem('currentUser'));
-        savedUser.name = newName;
-        localStorage.setItem('currentUser', JSON.stringify(savedUser));
-        
-        this.updateUI();
-        this.showToast('Профиль обновлен');
-    }
-
-    async searchFriend() {
-        const friendId = this.inputFriendId.value.trim().toUpperCase();
-        this.elSearchResult.innerHTML = '';
-        
-        if (!friendId) {
-            this.showToast('Введите ID', true);
-            return;
-        }
-        
-        if (friendId === this.currentUser.uniqueId) {
-            this.showToast('Это ваш ID', true);
-            return;
-        }
-        
-        const user = await this.db.findUserByUniqueId(friendId);
-        
-        if (!user) {
-            this.showToast('Пользователь не найден', true);
-            return;
-        }
-        
-        const friends = await this.db.getFriends(this.currentUser.email);
-        const alreadyFriend = friends.some(f => f.uniqueId === friendId);
-        
-        if (alreadyFriend) {
-            this.elSearchResult.innerHTML = `<div class="found-user"><span>👤 ${user.name}</span><span style="color:#ffaa00;">Уже в друзьях</span></div>`;
-            return;
-        }
-        
-        this.elSearchResult.innerHTML = `
-            <div class="found-user">
+        return `
+            <div class="message ${isSent ? 'sent' : 'received'}">
+                <div class="message-avatar">${isSent ? '👤' : '👥'}</div>
                 <div>
-                    <div style="color:#fff;font-weight:600;">${user.name}</div>
-                    <div style="color:rgba(255,255,255,0.5);font-size:0.8rem;">${user.email}</div>
+                    <div class="message-content">${escapeHtml(msg.text)}</div>
+                    <div class="message-time">${time}</div>
                 </div>
-                <button class="add-friend-btn" id="confirmAddFriend">Добавить</button>
             </div>
         `;
-        
-        document.getElementById('confirmAddFriend').addEventListener('click', () => {
-            this.confirmAddFriend(friendId);
-        });
-    }
+    }).join('');
+    
+    container.scrollTop = container.scrollHeight;
+}
 
-    async confirmAddFriend(friendId) {
-        const success = await this.db.addFriend(this.currentUser.email, friendId);
-        
-        if (success) {
-            this.showToast('Друг добавлен');
-            this.inputFriendId.value = '';
-            this.elSearchResult.innerHTML = '';
-            await this.updateCounts();
-            if (this.modalMessages.classList.contains('show')) this.renderFriendsList();
-        } else {
-            this.showToast('Ошибка', true);
+async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+    if (!text || !currentChat) return;
+    
+    const chatId = [currentUser.uniqueId, currentChat.id].sort().join('___');
+    const messagesRef = firebaseRef(db, 'messages/' + chatId);
+    const newMsgRef = firebasePush(messagesRef);
+    
+    await firebaseSet(newMsgRef, {
+        id: Date.now(),
+        from: currentUser.uniqueId,
+        to: currentChat.id,
+        text: text,
+        time: new Date().toISOString(),
+        read: false
+    });
+    
+    input.value = '';
+}
+
+async function deleteChat() {
+    if (!currentChat) return;
+    if (confirm('Удалить всю переписку?')) {
+        const chatId = [currentUser.uniqueId, currentChat.id].sort().join('___');
+        await firebaseRemove(firebaseRef(db, 'messages/' + chatId));
+        showToast('Чат удален');
+        document.getElementById('chatMessagesArea').innerHTML = '<div class="empty-chat"><div class="empty-chat-icon">💬</div><p>Чат удален</p></div>';
+        document.getElementById('chatAreaHeader').style.display = 'none';
+        document.getElementById('chatInputArea').style.display = 'none';
+        currentChat = null;
+        if (messageUnsubscribe) {
+            messageUnsubscribe();
+            messageUnsubscribe = null;
         }
-    }
-
-    async renderFriendsList() {
-        const friends = await this.db.getFriends(this.currentUser.email);
-        const query = this.elUserSearch ? this.elUserSearch.value.toLowerCase() : '';
-        
-        const filtered = friends.filter(f => f.name.toLowerCase().includes(query));
-        
-        if (filtered.length === 0) {
-            this.elFriendsList.innerHTML = `<div style="text-align:center;padding:2rem;color:rgba(255,255,255,0.3);">${friends.length === 0 ? 'Нет друзей' : 'Ничего не найдено'}</div>`;
-            return;
-        }
-        
-        this.elFriendsList.innerHTML = filtered.map(f => {
-            return `
-                <div class="user-item ${this.selectedChat?.uniqueId === f.uniqueId ? 'active' : ''}" data-uid="${f.uniqueId}">
-                    <div class="user-item-avatar">${f.avatar ? '<img src="' + f.avatar + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">' : '👤'}</div>
-                    <div class="user-item-info">
-                        <div class="user-item-name">${f.name}</div>
-                    </div>
-                    <button class="remove-friend-btn" data-uid="${f.uniqueId}" title="Удалить">✕</button>
-                </div>
-            `;
-        }).join('');
-        
-        this.elFriendsList.querySelectorAll('.user-item').forEach(item => {
-            item.addEventListener('click', e => {
-                if (!e.target.classList.contains('remove-friend-btn')) {
-                    this.selectChat(item.dataset.uid);
-                }
-            });
-        });
-        
-        this.elFriendsList.querySelectorAll('.remove-friend-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
-                e.stopPropagation();
-                this.removeFriend(btn.dataset.uid);
-            });
-        });
-    }
-
-    async renderAllFriends() {
-        const friends = await this.db.getFriends(this.currentUser.email);
-        
-        if (friends.length === 0) {
-            this.elAllFriendsList.innerHTML = `<div style="text-align:center;padding:2rem;color:rgba(255,255,255,0.3);">У вас пока нет друзей</div>`;
-            return;
-        }
-        
-        this.elAllFriendsList.innerHTML = friends.map(f => `
-            <div class="user-item" style="justify-content:space-between;">
-                <div style="display:flex;align-items:center;gap:1rem;">
-                    <div class="user-item-avatar">${f.avatar ? '<img src="' + f.avatar + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">' : '👤'}</div>
-                    <div>
-                        <div style="color:#fff;font-weight:600;">${f.name}</div>
-                        <div style="color:rgba(255,255,255,0.4);font-size:0.8rem;">ID: ${f.uniqueId}</div>
-                    </div>
-                </div>
-                <button class="remove-friend-btn" data-uid="${f.uniqueId}">Удалить</button>
-            </div>
-        `).join('');
-        
-        this.elAllFriendsList.querySelectorAll('.remove-friend-btn').forEach(btn => {
-            btn.addEventListener('click', () => this.removeFriend(btn.dataset.uid));
-        });
-    }
-
-    async removeFriend(friendId) {
-        if (confirm('Удалить из друзей?')) {
-            await this.db.removeFriend(this.currentUser.email, friendId);
-            if (this.selectedChat?.uniqueId === friendId) this.clearChat();
-            await this.renderFriendsList();
-            await this.renderAllFriends();
-            await this.updateCounts();
-            this.showToast('Друг удален');
-        }
-    }
-
-    async selectChat(friendId) {
-        const friends = await this.db.getFriends(this.currentUser.email);
-        const friend = friends.find(f => f.uniqueId === friendId);
-        if (!friend) return;
-        
-        if (this.messageUnsubscribe) {
-            this.messageUnsubscribe();
-            this.messageUnsubscribe = null;
-        }
-        
-        this.selectedChat = friend;
-        this.elChatUserName.textContent = friend.name;
-        this.elChatStatus.textContent = 'Онлайн';
-        this.inputMessage.disabled = false;
-        this.btnSendMessage.disabled = false;
-        this.btnDeleteChat.style.display = 'block';
-        
-        await this.msg.markAsRead(friend.uniqueId, this.currentUser.uniqueId);
-        await this.renderChatHistory();
-        
-        this.messageUnsubscribe = this.msg.subscribeToMessages(this.currentUser.uniqueId, friend.uniqueId, (messages) => {
-            this.renderChatHistoryStatic(messages);
-        });
-        
-        this.renderFriendsList();
-        this.updateCounts();
-    }
-
-    async renderChatHistory() {
-        if (!this.selectedChat) return;
-        const messages = await this.msg.getConversation(this.currentUser.uniqueId, this.selectedChat.uniqueId);
-        this.renderChatHistoryStatic(messages);
-    }
-
-    renderChatHistoryStatic(messages) {
-        if (!this.selectedChat) return;
-        
-        const wasAtBottom = this.isScrolledToBottom();
-        
-        if (messages.length === 0) {
-            this.elChatMessages.innerHTML = `<div class="no-chat-selected"><div class="no-chat-icon">💬</div><p>Начните общение!</p></div>`;
-            return;
-        }
-        
-        this.elChatMessages.innerHTML = messages.map(m => {
-            const isSent = m.from === this.currentUser.uniqueId;
-            const time = new Date(m.time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-            
-            return `
-                <div class="message ${isSent ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}" data-message-id="${m.id}">
-                    <div class="message-avatar">${isSent ? (this.currentUser.avatar ? '<img src="' + this.currentUser.avatar + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">' : '👤') : (this.selectedChat.avatar ? '<img src="' + this.selectedChat.avatar + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">' : '👥')}</div>
-                    <div>
-                        <div class="message-content">${m.text || (m.image ? '📷 Изображение' : '')}</div>
-                        <div class="message-time">${time} ${m.pinned ? '📌' : ''}</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        if (wasAtBottom) {
-            setTimeout(() => {
-                this.elChatMessages.scrollTop = this.elChatMessages.scrollHeight;
-            }, 50);
-        }
-    }
-
-    isScrolledToBottom() {
-        const element = this.elChatMessages;
-        return Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight) < 50;
-    }
-
-    async sendMessage() {
-        const text = this.inputMessage.value.trim();
-        if (!text || !this.selectedChat) return;
-        
-        await this.msg.send(this.currentUser.uniqueId, this.selectedChat.uniqueId, text);
-        this.inputMessage.value = '';
-        await this.renderChatHistory();
-        this.renderFriendsList();
-        this.updateCounts();
-        setTimeout(() => {
-            this.elChatMessages.scrollTop = this.elChatMessages.scrollHeight;
-        }, 50);
-    }
-
-    async deleteCurrentChat() {
-        if (!this.selectedChat) return;
-        if (confirm('Удалить переписку?')) {
-            await this.msg.deleteChat(this.currentUser.uniqueId, this.selectedChat.uniqueId);
-            this.renderChatHistory();
-            this.showToast('Чат очищен');
-        }
-    }
-
-    clearChat() {
-        if (this.messageUnsubscribe) {
-            this.messageUnsubscribe();
-            this.messageUnsubscribe = null;
-        }
-        this.selectedChat = null;
-        this.elChatUserName.textContent = 'Выберите чат';
-        this.elChatStatus.textContent = '';
-        this.inputMessage.disabled = true;
-        this.btnSendMessage.disabled = true;
-        this.btnDeleteChat.style.display = 'none';
-        this.elChatMessages.innerHTML = `<div class="no-chat-selected"><div class="no-chat-icon">💬</div><p>Выберите друга для начала общения</p></div>`;
-    }
-
-    startPolling() {
-        setInterval(async () => {
-            if (this.modalMessages && this.modalMessages.classList.contains('show')) {
-                await this.updateCounts();
-                await this.renderFriendsList();
-            }
-        }, 3000);
-    }
-
-    initContextMenu() {
-        if (!this.elChatMessages) return;
-        this.elChatMessages.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            const messageDiv = e.target.closest('.message');
-            if (!messageDiv) return;
-            
-            this.selectedMessageId = parseInt(messageDiv.dataset.messageId);
-            this.contextMenu.style.display = 'block';
-            this.contextMenu.style.left = e.pageX + 'px';
-            this.contextMenu.style.top = e.pageY + 'px';
-        });
-    }
-
-    hideContextMenu() {
-        this.contextMenu.style.display = 'none';
-    }
-
-    deleteSelectedMessage() {
-        this.hideContextMenu();
-        this.showToast('Удаление временно недоступно');
-    }
-
-    pinSelectedMessage() {
-        this.hideContextMenu();
-        this.showToast('Закрепление временно недоступно');
-    }
-
-    unpinSelectedMessage() {
-        this.hideContextMenu();
-    }
-
-    copyMessageText() {
-        this.hideContextMenu();
-        this.showToast('Копирование временно недоступно');
-    }
-
-    logout() {
-        localStorage.removeItem('currentUser');
-        window.location.replace('index.html');
     }
 }
 
-// ЗАПУСК
-document.addEventListener('DOMContentLoaded', () => {
-    new HomeApp();
-});
+// ========== ПРОФИЛЬ ==========
+
+async function loadCurrentUser() {
+    const saved = localStorage.getItem('currentUser');
+    if (!saved) {
+        window.location.href = 'index.html';
+        return;
+    }
+    currentUser = JSON.parse(saved);
+    console.log('Пользователь:', currentUser.name);
+}
+
+function updateUserUI() {
+    document.getElementById('sidebarUserName').textContent = currentUser.name || currentUser.email;
+    document.getElementById('sidebarUserUniqueId').textContent = currentUser.uniqueId;
+    document.getElementById('profileNameInput').value = currentUser.name || '';
+    document.getElementById('profileEmailInput').value = currentUser.email;
+    document.getElementById('profileIdInput').value = currentUser.uniqueId;
+}
+
+async function saveProfile() {
+    const newName = document.getElementById('profileNameInput').value.trim();
+    const newBio = document.getElementById('profileBioInput').value.trim();
+    
+    if (!newName) {
+        showToast('Имя не может быть пустым', true);
+        return;
+    }
+    
+    const usersRef = firebaseRef(db, 'users');
+    const snapshot = await firebaseGet(usersRef);
+    const users = snapshot.val();
+    
+    for (let key in users) {
+        if (users[key].email === currentUser.email) {
+            await firebaseUpdate(firebaseRef(db, 'users/' + key), { 
+                name: newName,
+                bio: newBio || ''
+            });
+            break;
+        }
+    }
+    
+    currentUser.name = newName;
+    currentUser.bio = newBio;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    updateUserUI();
+    showToast('Профиль обновлен');
+    document.getElementById('profileModal').classList.remove('show');
+}
+
+async function changeAvatar() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const avatarData = event.target.result;
+            const usersRef = firebaseRef(db, 'users');
+            const snapshot = await firebaseGet(usersRef);
+            const users = snapshot.val();
+            
+            for (let key in users) {
+                if (users[key].email === currentUser.email) {
+                    await firebaseUpdate(firebaseRef(db, 'users/' + key), { avatar: avatarData });
+                    break;
+                }
+            }
+            
+            currentUser.avatar = avatarData;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            updateUserUI();
+            showToast('Аватар обновлен');
+        };
+        reader.readAsDataURL(file);
+    };
+    input.click();
+}
+
+async function changeCover() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const coverData = event.target.result;
+            const usersRef = firebaseRef(db, 'users');
+            const snapshot = await firebaseGet(usersRef);
+            const users = snapshot.val();
+            
+            for (let key in users) {
+                if (users[key].email === currentUser.email) {
+                    await firebaseUpdate(firebaseRef(db, 'users/' + key), { cover: coverData });
+                    break;
+                }
+            }
+            
+            document.getElementById('profileCover').style.backgroundImage = `url(${coverData})`;
+            showToast('Обложка обновлена');
+        };
+        reader.readAsDataURL(file);
+    };
+    input.click();
+}
+
+// ========== ЛЕНТА С ПОСТАМИ ==========
+
+async function createPost() {
+    const content = document.getElementById('postContent').value.trim();
+    const mediaFile = document.getElementById('postMediaFile').files[0];
+    
+    if (!content && !mediaFile) {
+        showToast('Введите текст или прикрепите фото/видео', true);
+        return;
+    }
+    
+    showToast('Публикация...');
+    
+    let mediaUrl = null;
+    let mediaType = null;
+    
+    if (mediaFile) {
+        const uploaded = await uploadToFreeImage(mediaFile);
+        if (uploaded) {
+            mediaUrl = uploaded.url;
+            mediaType = getFileType(mediaFile);
+        } else {
+            showToast('Ошибка загрузки медиа', true);
+            return;
+        }
+    }
+    
+    const postsRef = firebaseRef(db, 'posts');
+    const newPostRef = firebasePush(postsRef);
+    
+    await firebaseSet(newPostRef, {
+        id: Date.now(),
+        authorId: currentUser.uniqueId,
+        authorName: currentUser.name,
+        authorAvatar: currentUser.avatar || null,
+        content: content,
+        mediaUrl: mediaUrl,
+        mediaType: mediaType,
+        time: new Date().toISOString(),
+        likes: 0,
+        comments: []
+    });
+    
+    showToast('✅ Пост опубликован!');
+    document.getElementById('createPostModal').classList.remove('show');
+    document.getElementById('postContent').value = '';
+    document.getElementById('postMediaFile').value = '';
+    document.getElementById('mediaPreview').innerHTML = '';
+    await loadFeed();
+}
+
+async function loadFeed() {
+    const postsRef = firebaseRef(db, 'posts');
+    const snapshot = await firebaseGet(postsRef);
+    const posts = snapshot.val();
+    
+    const container = document.getElementById('feedPosts');
+    if (!posts) {
+        container.innerHTML = '<div class="empty-state">Нет постов</div>';
+        return;
+    }
+    
+    const postsArray = Object.values(posts).sort((a,b) => b.id - a.id);
+    container.innerHTML = postsArray.map(post => `
+        <div class="post-card">
+            <div class="post-header">
+                <div class="post-avatar">${post.authorAvatar ? `<img src="${post.authorAvatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤'}</div>
+                <div>
+                    <div class="post-author">${escapeHtml(post.authorName)}</div>
+                    <div class="post-time">${new Date(post.time).toLocaleString()}</div>
+                </div>
+            </div>
+            <div class="post-content">${escapeHtml(post.content)}</div>
+            ${post.mediaUrl ? `
+                <div class="post-media">
+                    ${post.mediaType === 'image' ? 
+                        `<img src="${post.mediaUrl}" class="post-image" onclick="window.open(this.src)" style="max-width:100%; border-radius:12px; margin-top:10px; cursor:pointer">` : 
+                        `<video src="${post.mediaUrl}" controls style="max-width:100%; border-radius:12px; margin-top:10px"></video>`
+                    }
+                </div>
+            ` : ''}
+            <div class="post-actions">
+                <button class="post-like-btn" data-id="${post.id}">❤️ ${post.likes || 0}</button>
+            </div>
+        </div>
+    `).join('');
+    
+    document.querySelectorAll('.post-like-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const postId = btn.dataset.id;
+            await likePost(postId);
+        });
+    });
+}
+
+async function likePost(postId) {
+    const postsRef = firebaseRef(db, 'posts');
+    const snapshot = await firebaseGet(postsRef);
+    const posts = snapshot.val();
+    
+    for (let key in posts) {
+        if (posts[key].id == postId) {
+            const currentLikes = posts[key].likes || 0;
+            await firebaseUpdate(firebaseRef(db, 'posts/' + key), { likes: currentLikes + 1 });
+            showToast('❤️ Лайк поставлен!');
+            await loadFeed();
+            break;
+        }
+    }
+}
+
+// ========== ИГРА ЗМЕЙКА ==========
+
+let snakeInterval = null;
+let snakeDirection = 'RIGHT';
+let snakeBody = [];
+let snakeFood = {};
+let snakeScore = 0;
+
+function initSnakeGame() {
+    const canvas = document.getElementById('snakeCanvas');
+    if (!canvas) return;
+    
+    if (snakeInterval) clearInterval(snakeInterval);
+    
+    snakeBody = [{x: 200, y: 200}];
+    snakeDirection = 'RIGHT';
+    snakeScore = 0;
+    document.getElementById('snakeScore').textContent = '0';
+    
+    snakeFood = {
+        x: Math.floor(Math.random() * 20) * 20,
+        y: Math.floor(Math.random() * 20) * 20
+    };
+    
+    function draw() {
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(0, 0, 400, 400);
+        
+        ctx.fillStyle = '#00ff88';
+        snakeBody.forEach(segment => {
+            ctx.fillRect(segment.x, segment.y, 18, 18);
+        });
+        
+        ctx.fillStyle = '#ff4444';
+        ctx.fillRect(snakeFood.x, snakeFood.y, 18, 18);
+    }
+    
+    function move() {
+        let newHead = {...snakeBody[0]};
+        switch(snakeDirection) {
+            case 'RIGHT': newHead.x += 20; break;
+            case 'LEFT': newHead.x -= 20; break;
+            case 'UP': newHead.y -= 20; break;
+            case 'DOWN': newHead.y += 20; break;
+        }
+        
+        if (newHead.x === snakeFood.x && newHead.y === snakeFood.y) {
+            snakeScore++;
+            document.getElementById('snakeScore').textContent = snakeScore;
+            snakeBody.unshift(newHead);
+            snakeFood = {
+                x: Math.floor(Math.random() * 20) * 20,
+                y: Math.floor(Math.random() * 20) * 20
+            };
+        } else {
+            snakeBody.unshift(newHead);
+            snakeBody.pop();
+        }
+        
+        if (newHead.x < 0 || newHead.x >= 400 || newHead.y < 0 || newHead.y >= 400) {
+            clearInterval(snakeInterval);
+            alert(`Игра окончена! Счет: ${snakeScore}`);
+            snakeInterval = null;
+        }
+        
+        draw();
+    }
+    
+    function handleSnakeKey(e) {
+        if (e.key === 'ArrowRight' && snakeDirection !== 'LEFT') snakeDirection = 'RIGHT';
+        if (e.key === 'ArrowLeft' && snakeDirection !== 'RIGHT') snakeDirection = 'LEFT';
+        if (e.key === 'ArrowUp' && snakeDirection !== 'DOWN') snakeDirection = 'UP';
+        if (e.key === 'ArrowDown' && snakeDirection !== 'UP') snakeDirection = 'DOWN';
+    }
+    
+    document.removeEventListener('keydown', handleSnakeKey);
+    document.addEventListener('keydown', handleSnakeKey);
+    
+    snakeInterval = setInterval(move, 150);
+    draw();
+}
+
+// ========== НАВИГАЦИЯ И СОБЫТИЯ ==========
+
+function setupNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const pages = document.querySelectorAll('.page');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const pageName = item.dataset.page;
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+            pages.forEach(page => page.classList.remove('active'));
+            document.getElementById(`${pageName}Page`).classList.add('active');
+            
+            if (pageName === 'feed') {
+                loadFeed();
+            }
+        });
+    });
+}
+
+function setupEventListeners() {
+    // Выход
+    document.getElementById('logoutBtnSidebar').onclick = () => {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'index.html';
+    };
+    
+    // Профиль
+    document.getElementById('openProfileBtn').onclick = () => {
+        document.getElementById('profileModal').classList.add('show');
+    };
+    document.getElementById('closeProfileModal').onclick = () => {
+        document.getElementById('profileModal').classList.remove('show');
+    };
+    document.getElementById('saveProfileChangesBtn').onclick = saveProfile;
+    document.getElementById('changeAvatarBtn').onclick = changeAvatar;
+    document.getElementById('changeCoverBtn').onclick = changeCover;
+    
+    // Добавление друга
+    document.getElementById('addFriendHeaderBtn').onclick = () => {
+        document.getElementById('addFriendModal').classList.add('show');
+    };
+    document.getElementById('closeAddFriendModal').onclick = () => {
+        document.getElementById('addFriendModal').classList.remove('show');
+        document.getElementById('friendIdInput').value = '';
+        document.getElementById('searchResultModal').innerHTML = '';
+    };
+    document.getElementById('searchFriendBtnModal').onclick = searchAndAddFriend;
+    
+    // Сообщения
+    document.getElementById('sendMessageBtn').onclick = sendMessage;
+    document.getElementById('messageInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+    document.getElementById('deleteChatBtn').onclick = deleteChat;
+    
+    // Посты
+    document.getElementById('createPostBtn').onclick = () => {
+        document.getElementById('createPostModal').classList.add('show');
+    };
+    document.getElementById('closePostModal').onclick = () => {
+        document.getElementById('createPostModal').classList.remove('show');
+        document.getElementById('postContent').value = '';
+        document.getElementById('postMediaFile').value = '';
+        document.getElementById('mediaPreview').innerHTML = '';
+    };
+    document.getElementById('publishPostBtn').onclick = createPost;
+    
+    // Игры
+    document.querySelectorAll('.game-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const game = card.dataset.game;
+            if (game === 'snake') {
+                document.getElementById('snakeGameModal').classList.add('show');
+                setTimeout(initSnakeGame, 100);
+            } else {
+                showToast('Игра в разработке');
+            }
+        });
+    });
+    document.getElementById('closeGameModal').onclick = () => {
+        document.getElementById('snakeGameModal').classList.remove('show');
+        if (snakeInterval) {
+            clearInterval(snakeInterval);
+            snakeInterval = null;
+        }
+    };
+    document.getElementById('restartSnakeBtn').onclick = () => {
+        initSnakeGame();
+    };
+    
+    // Закрытие модалок по клику на фон
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.classList.remove('show');
+        };
+    });
+    
+    // Предпросмотр медиа
+    setupMediaPreview();
+}
+
+// ========== ИНИЦИАЛИЗАЦИЯ ==========
+
+async function init() {
+    console.log('Инициализация...');
+    await waitForFirebase();
+    await loadCurrentUser();
+    setupNavigation();
+    setupEventListeners();
+    await loadFriends();
+    await loadChats();
+    await loadFeed();
+    updateUserUI();
+    console.log('Готово!');
+}
+
+// Запуск
+init();

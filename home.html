@@ -9,200 +9,231 @@
 <body>
     <div class="particles"></div>
     
-    <div class="main-screen">
-        <header class="desktop-header">
-            <div class="desktop-title">
-                <span class="title-icon">⬡</span>
-                Slicemes
+    <div class="app-container">
+        <!-- БОКОВОЕ МЕНЮ -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <span class="logo-icon">⬡</span>
+                    <span class="logo-text">Slicemes</span>
+                </div>
             </div>
-            <div class="user-panel">
-                <div class="user-info" id="openProfileFromHeader" style="cursor:pointer">
-                    <div class="user-avatar" id="headerAvatar">👤</div>
-                    <div>
-                        <span id="userDisplayName">Пользователь</span>
-                        <div class="user-id-display">Мой ID: <strong id="userUniqueId">...</strong></div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-item active" data-page="chats">
+                    <span class="nav-icon">💬</span>
+                    <span class="nav-text">Чаты</span>
+                </div>
+                <div class="nav-item" data-page="friends">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Друзья</span>
+                </div>
+                <div class="nav-item" data-page="feed">
+                    <span class="nav-icon">📱</span>
+                    <span class="nav-text">Лента</span>
+                </div>
+                <div class="nav-item" data-page="games">
+                    <span class="nav-icon">🎮</span>
+                    <span class="nav-text">Развлечения</span>
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-mini" id="openProfileBtn">
+                    <div class="user-mini-avatar" id="sidebarAvatar">👤</div>
+                    <div class="user-mini-info">
+                        <div class="user-mini-name" id="sidebarUserName">Загрузка...</div>
+                        <div class="user-mini-id" id="sidebarUserUniqueId">ID...</div>
                     </div>
                 </div>
-                <button id="logoutBtn" class="logout-btn">
-                    <span>Выйти</span>
-                    <span class="btn-icon">↩</span>
-                </button>
+                <button id="logoutBtnSidebar" class="logout-sidebar-btn">🚪 Выход</button>
             </div>
-        </header>
+        </aside>
 
-        <main class="home-main">
-            <div class="welcome-section">
-                <div class="stats-grid">
-                    <div class="stat-card" id="btnFriends" style="cursor:pointer">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-value" id="friendsCount">0</div>
-                        <div class="stat-label">Друзей</div>
+        <!-- ОСНОВНОЙ КОНТЕНТ -->
+        <main class="main-content">
+            <!-- СТРАНИЦА ЧАТОВ -->
+            <div id="chatsPage" class="page active">
+                <div class="chats-container">
+                    <div class="chats-sidebar">
+                        <div class="chats-header">
+                            <h2>Сообщения</h2>
+                            <button class="new-chat-btn" id="newChatBtn">➕</button>
+                        </div>
+                        <div class="chats-search">
+                            <input type="text" id="chatsSearch" placeholder="Поиск чатов...">
+                        </div>
+                        <div class="chats-list" id="chatsList">
+                            <div class="empty-state">Нет чатов</div>
+                        </div>
                     </div>
-                    <div class="stat-card" id="btnMessages" style="cursor:pointer">
-                        <div class="stat-icon">💬</div>
-                        <div class="stat-value" id="unreadCount">0</div>
-                        <div class="stat-label">Сообщений</div>
+                    <div class="chat-area">
+                        <div class="chat-area-header" id="chatAreaHeader" style="display: none;">
+                            <div class="chat-contact-info">
+                                <div class="chat-contact-avatar" id="chatContactAvatar">👤</div>
+                                <div>
+                                    <h3 id="chatContactName">Имя</h3>
+                                    <span class="chat-contact-status" id="chatContactStatus">Онлайн</span>
+                                </div>
+                            </div>
+                            <button id="deleteChatBtn" class="delete-chat-btn">🗑️</button>
+                        </div>
+                        <div class="chat-messages-area" id="chatMessagesArea">
+                            <div class="empty-chat">
+                                <div class="empty-chat-icon">💬</div>
+                                <p>Выберите чат для начала общения</p>
+                            </div>
+                        </div>
+                        <div class="chat-input-area" id="chatInputArea" style="display: none;">
+                            <input type="text" id="messageInput" placeholder="Сообщение...">
+                            <button id="sendMessageBtn">Отправить</button>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="quick-actions">
-                    <div class="action-card" id="btnOpenMessages">
-                        <div class="action-icon">💬</div>
-                        <h3>Сообщения</h3>
-                        <p>Чат с друзьями</p>
+            <!-- СТРАНИЦА ДРУЗЕЙ -->
+            <div id="friendsPage" class="page">
+                <div class="friends-container">
+                    <div class="friends-header">
+                        <h2>Мои друзья</h2>
+                        <button class="add-friend-header-btn" id="addFriendHeaderBtn">➕ Добавить друга</button>
                     </div>
-                    
-                    <div class="action-card" id="btnOpenAddFriend">
-                        <div class="action-icon">➕</div>
-                        <h3>Добавить друга</h3>
-                        <p>Поиск по ID</p>
+                    <div class="friends-search">
+                        <input type="text" id="friendsSearch" placeholder="Поиск друзей...">
                     </div>
-                    
-                    <div class="action-card" id="btnOpenFriendsList">
-                        <div class="action-icon">👥</div>
-                        <h3>Мои друзья</h3>
-                        <p>Список контактов</p>
+                    <div class="friends-grid" id="friendsGrid">
+                        <div class="empty-state">У вас пока нет друзей</div>
                     </div>
-                    
-                    <div class="action-card" id="btnOpenProfile">
-                        <div class="action-icon">👤</div>
-                        <h3>Мой профиль</h3>
-                        <p>Настройки аккаунта</p>
+                </div>
+            </div>
+
+            <!-- СТРАНИЦА ЛЕНТЫ -->
+            <div id="feedPage" class="page">
+                <div class="feed-container">
+                    <div class="feed-header">
+                        <h2>Лента</h2>
+                        <button class="create-post-btn" id="createPostBtn">📷 Создать пост</button>
+                    </div>
+                    <div class="feed-posts" id="feedPosts">
+                        <div class="empty-state">Нет постов</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- СТРАНИЦА РАЗВЛЕЧЕНИЙ -->
+            <div id="gamesPage" class="page">
+                <div class="games-container">
+                    <div class="games-header">
+                        <h2>Развлечения</h2>
+                    </div>
+                    <div class="games-grid">
+                        <div class="game-card" data-game="snake">
+                            <div class="game-icon">🐍</div>
+                            <h3>Змейка</h3>
+                            <p>Классическая игра</p>
+                        </div>
+                        <div class="game-card" data-game="tetris">
+                            <div class="game-icon">🧩</div>
+                            <h3>Тетрис</h3>
+                            <p>Скоро</p>
+                        </div>
+                        <div class="game-card" data-game="clicker">
+                            <div class="game-icon">🖱️</div>
+                            <h3>Кликер</h3>
+                            <p>Скоро</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Модальное окно: Добавить друга -->
+    <!-- Модалка добавления друга -->
     <div id="addFriendModal" class="modal">
         <div class="modal-content">
-            <button class="close-modal" id="closeAddFriend">✕</button>
+            <button class="close-modal" id="closeAddFriendModal">✕</button>
             <div class="modal-header">
                 <div class="modal-icon">➕</div>
-                <h2 class="modal-title">Добавить друга</h2>
+                <h2>Добавить друга</h2>
             </div>
             <div class="form-group">
                 <label>ID друга</label>
                 <input type="text" id="friendIdInput" placeholder="Введите ID пользователя">
             </div>
-            <button id="searchFriendBtn" class="submit-btn">Найти</button>
-            <div id="searchResult" style="margin-top: 1rem;"></div>
-            <p style="text-align:center; color: rgba(255,255,255,0.5); margin-top: 1rem;">
-                Ваш ID: <strong id="myIdInAddFriend">...</strong>
-            </p>
+            <button id="searchFriendBtnModal" class="submit-btn">Найти</button>
+            <div id="searchResultModal"></div>
         </div>
     </div>
 
-    <!-- Модальное окно: Мессенджер -->
-    <div id="messagesModal" class="modal">
-        <div class="messages-container">
-            <div class="messages-sidebar">
-                <div class="messages-header">
-                    <h2>Сообщения</h2>
-                    <button class="close-messages" id="closeMessages">✕</button>
-                </div>
-                <div class="search-box">
-                    <input type="text" id="userSearch" placeholder="Поиск...">
-                </div>
-                <div class="users-list" id="friendsList"></div>
-            </div>
-            <div class="messages-chat">
-                <div class="chat-header">
-                    <div class="chat-user-info">
-                        <div class="chat-avatar">💬</div>
-                        <div>
-                            <h3 id="chatUserName">Выберите чат</h3>
-                            <span class="chat-status" id="chatStatus"></span>
-                        </div>
-                    </div>
-                    <button id="deleteChatBtn" class="delete-chat-btn" style="display:none" title="Удалить чат">🗑️</button>
-                </div>
-                <div class="chat-messages" id="chatMessages">
-                    <div class="no-chat-selected">
-                        <div class="no-chat-icon">💬</div>
-                        <p>Выберите друга для начала общения</p>
-                    </div>
-                </div>
-                <div class="chat-input-area">
-                    <div class="input-actions">
-                        <button id="attachImageBtn" class="attach-btn" title="Прикрепить фото">📎</button>
-                        <input type="file" id="imageInput" accept="image/*" style="display:none">
-                    </div>
-                    <input type="text" id="messageInput" placeholder="Сообщение..." disabled>
-                    <button id="sendMessageBtn" disabled>Отправить</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно: Список друзей -->
-    <div id="friendsListModal" class="modal">
-        <div class="modal-content">
-            <button class="close-modal" id="closeFriendsList">✕</button>
-            <div class="modal-header">
-                <div class="modal-icon">👥</div>
-                <h2 class="modal-title">Мои друзья</h2>
-            </div>
-            <div id="allFriendsList"></div>
-        </div>
-    </div>
-
-    <!-- Модальное окно: Профиль -->
+    <!-- Модалка профиля -->
     <div id="profileModal" class="modal">
         <div class="modal-content profile-modal-content">
-            <button class="close-modal" id="closeProfile">✕</button>
-            
+            <button class="close-modal" id="closeProfileModal">✕</button>
             <div class="profile-cover" id="profileCover">
-                <button class="change-cover-btn" id="changeCoverBtn" title="Сменить обложку">📷</button>
-                <input type="file" id="coverInput" accept="image/*" style="display:none">
+                <button class="change-cover-btn" id="changeCoverBtn">📷</button>
             </div>
-            
             <div class="profile-avatar-wrapper">
                 <div class="profile-avatar-large" id="profileAvatarLarge">👤</div>
-                <button class="change-avatar-btn-large" id="changeAvatarBtnLarge" title="Сменить аватар">📷</button>
-                <input type="file" id="avatarInputLarge" accept="image/*" style="display:none">
+                <button class="change-avatar-btn-large" id="changeAvatarBtn">📷</button>
             </div>
-            
             <div class="profile-info-container">
                 <div class="profile-field">
-                    <label>Имя пользователя</label>
-                    <input type="text" id="profileName" placeholder="Ваше имя">
-                    <div class="name-change-info" id="nameChangeInfo"></div>
+                    <label>Имя</label>
+                    <input type="text" id="profileNameInput">
                 </div>
-                
                 <div class="profile-field">
                     <label>О себе</label>
-                    <textarea id="profileBio" rows="3" placeholder="Расскажите о себе..."></textarea>
+                    <textarea id="profileBioInput" rows="3"></textarea>
                 </div>
-                
                 <div class="profile-field">
                     <label>Email</label>
-                    <input type="email" id="profileEmail" readonly disabled>
+                    <input type="email" id="profileEmailInput" readonly disabled>
                 </div>
-                
                 <div class="profile-field">
                     <label>Мой ID</label>
-                    <input type="text" id="profileId" readonly disabled>
+                    <input type="text" id="profileIdInput" readonly disabled>
                 </div>
-                
-                <button id="saveProfileBtn" class="submit-btn">Сохранить изменения</button>
+                <button id="saveProfileChangesBtn" class="submit-btn">Сохранить</button>
             </div>
         </div>
     </div>
 
-    <div id="messageContextMenu" class="context-menu" style="display:none">
-        <div class="context-menu-item" id="menuDeleteMessage">🗑️ Удалить</div>
-        <div class="context-menu-item" id="menuPinMessage">📌 Закрепить</div>
-        <div class="context-menu-item" id="menuUnpinMessage" style="display:none">📌 Открепить</div>
-        <div class="context-menu-item" id="menuCopyText">📋 Копировать</div>
+    <!-- Модалка создания поста -->
+    <div id="createPostModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" id="closePostModal">✕</button>
+            <div class="modal-header">
+                <h2>Создать пост</h2>
+            </div>
+            <div class="form-group">
+                <textarea id="postContent" rows="4" placeholder="Что у вас нового?"></textarea>
+            </div>
+            <div class="form-group">
+                <label>📷 Прикрепить фото или видео</label>
+                <input type="file" id="postMediaFile" accept="image/*,video/*">
+                <div id="mediaPreview" style="margin-top: 10px;"></div>
+            </div>
+            <button id="publishPostBtn" class="submit-btn">Опубликовать</button>
+        </div>
+    </div>
+
+    <!-- Модалка игры Змейка -->
+    <div id="snakeGameModal" class="modal">
+        <div class="modal-content game-modal">
+            <button class="close-modal" id="closeGameModal">✕</button>
+            <h2>Змейка</h2>
+            <canvas id="snakeCanvas" width="400" height="400"></canvas>
+            <p>Счет: <span id="snakeScore">0</span></p>
+            <button id="restartSnakeBtn" class="submit-btn">Начать заново</button>
+        </div>
     </div>
 
     <div id="toast" class="toast" style="display: none;"></div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-        import { getDatabase, ref, set, get, push, update, child, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+        import { getDatabase, ref, set, get, push, update, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
         
         const firebaseConfig = {
             apiKey: "AIzaSyCK5MTHhq15C_aFTS2prR2QrM-U4F2kgJo",
@@ -217,7 +248,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        // Сохраняем в window
         window.db = db;
         window.firebaseRef = ref;
         window.firebaseSet = set;
@@ -227,14 +257,9 @@
         window.firebaseOnValue = onValue;
         window.firebaseRemove = remove;
         
-        // Ждем 1 секунду и загружаем home.js
-        setTimeout(() => {
-            const script = document.createElement('script');
-            script.src = 'home.js';
-            script.onload = () => console.log('home.js загружен');
-            script.onerror = () => console.error('Ошибка загрузки home.js');
-            document.body.appendChild(script);
-        }, 100);
+        const script = document.createElement('script');
+        script.src = 'home.js';
+        document.body.appendChild(script);
     </script>
 </body>
 </html>
