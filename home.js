@@ -150,6 +150,7 @@ async function loadCurrentUser() {
         }
     }
 }
+
 function updateUserUI() {
     const userNameEl = document.getElementById('sidebarUserName');
     const userIdEl = document.getElementById('sidebarUserUniqueId');
@@ -160,7 +161,6 @@ function updateUserUI() {
     const lastIdChangeEl = document.getElementById('lastIdChange');
     const idChangeWarningEl = document.querySelector('.id-change-warning');
     
-    // Проверяем что currentUser существует
     if (!currentUser) {
         console.log('currentUser не загружен');
         return;
@@ -175,7 +175,6 @@ function updateUserUI() {
     if (profileIdEl) profileIdEl.value = currentUser.uniqueId || '';
     if (profileBioEl) profileBioEl.value = currentUser.bio || '';
     
-    // Логика отображения информации об изменении ID
     const hasChangedId = currentUser.lastIdChange && currentUser.lastIdChange > 0;
     
     if (hasChangedId) {
@@ -205,7 +204,6 @@ function updateUserUI() {
     
     if (idChangeWarningEl) idChangeWarningEl.style.display = 'block';
     
-    // Аватар в сайдбаре
     const sidebarAvatar = document.getElementById('sidebarAvatar');
     if (sidebarAvatar) {
         if (currentUser.avatar) {
@@ -215,7 +213,6 @@ function updateUserUI() {
         }
     }
     
-    // Аватар в профиле
     const profileAvatar = document.getElementById('profileAvatarLarge');
     if (profileAvatar) {
         if (currentUser.avatar) {
@@ -225,7 +222,6 @@ function updateUserUI() {
         }
     }
     
-    // Обложка профиля
     const profileCover = document.getElementById('profileCover');
     if (profileCover) {
         if (currentUser.cover) {
@@ -237,6 +233,7 @@ function updateUserUI() {
         }
     }
 }
+
 async function changeUserId() {
     const newId = document.getElementById('profileIdInput').value.trim().toUpperCase();
     if (!newId) {
@@ -254,7 +251,6 @@ async function changeUserId() {
         return;
     }
     
-    // Проверка на 7 дней
     const hasChangedBefore = currentUser.lastIdChange && currentUser.lastIdChange > 0;
     if (hasChangedBefore) {
         const daysSinceLastChange = (Date.now() - currentUser.lastIdChange) / (1000 * 60 * 60 * 24);
@@ -265,7 +261,6 @@ async function changeUserId() {
         }
     }
     
-    // Проверка уникальности
     const usersRef = firebaseRef(db, 'users');
     const snapshot = await firebaseGet(usersRef);
     const users = snapshot.val();
@@ -277,7 +272,6 @@ async function changeUserId() {
         }
     }
     
-    // Обновляем ID
     const oldId = currentUser.uniqueId;
     const now = Date.now();
     
@@ -290,7 +284,6 @@ async function changeUserId() {
     currentUser.lastIdChange = now;
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
     
-    // Обновляем ID в друзьях у всех пользователей
     for (let key in users) {
         if (users[key].friends && users[key].friends.includes(oldId)) {
             const newFriends = users[key].friends.map(id => id === oldId ? newId : id);
@@ -298,7 +291,6 @@ async function changeUserId() {
         }
     }
     
-    // Обновляем ID в сообщениях
     const messagesRef = firebaseRef(db, 'messages');
     const messagesSnapshot = await firebaseGet(messagesRef);
     const messages = messagesSnapshot.val();
@@ -372,6 +364,7 @@ async function changeAvatar() {
     };
     input.click();
 }
+
 async function changeCover() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -380,35 +373,25 @@ async function changeCover() {
         const file = e.target.files[0];
         if (!file) return;
         
-        showToast('Загрузка обложки...');
-        
         const reader = new FileReader();
         reader.onload = async (event) => {
             const coverData = event.target.result;
             
-            try {
-                // Сохраняем в Firebase
-                await firebaseUpdate(firebaseRef(db, 'users/' + currentUser.id), { 
-                    cover: coverData 
-                });
-                
-                // Обновляем локально
-                currentUser.cover = coverData;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                
-                // Обновляем отображение
-                const profileCover = document.getElementById('profileCover');
-                if (profileCover) {
-                    profileCover.style.backgroundImage = `url(${coverData})`;
-                    profileCover.style.backgroundSize = 'cover';
-                    profileCover.style.backgroundPosition = 'center';
-                }
-                
-                showToast('✅ Обложка обновлена!');
-            } catch (error) {
-                console.error('Ошибка:', error);
-                showToast('Ошибка при загрузке обложки', true);
+            await firebaseUpdate(firebaseRef(db, 'users/' + currentUser.id), { 
+                cover: coverData 
+            });
+            
+            currentUser.cover = coverData;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            const profileCover = document.getElementById('profileCover');
+            if (profileCover) {
+                profileCover.style.backgroundImage = `url(${coverData})`;
+                profileCover.style.backgroundSize = 'cover';
+                profileCover.style.backgroundPosition = 'center';
             }
+            
+            showToast('✅ Обложка обновлена!');
         };
         reader.readAsDataURL(file);
     };
@@ -435,7 +418,6 @@ async function showFriendProfile(friendId, friendName) {
         return;
     }
     
-    // Создаем модалку для профиля друга
     let modal = document.getElementById('friendProfileModal');
     if (!modal) {
         modal = document.createElement('div');
@@ -467,7 +449,6 @@ async function showFriendProfile(friendId, friendName) {
         modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('show'); };
     }
     
-    // Заполняем данные
     document.getElementById('friendProfileName').textContent = friendData.name;
     document.getElementById('friendProfileId').textContent = friendData.uniqueId;
     document.getElementById('friendProfileBio').textContent = friendData.bio || 'Пользователь ничего не рассказал о себе';
@@ -479,13 +460,11 @@ async function showFriendProfile(friendId, friendName) {
         avatarEl.innerHTML = '👤';
     }
     
-    // Подсчет общих друзей
     const currentUserFriends = currentUser.friends || [];
     const friendFriends = friendData.friends || [];
     const mutualFriends = currentUserFriends.filter(id => friendFriends.includes(id));
     document.getElementById('friendMutualFriends').textContent = mutualFriends.length;
     
-    // Кнопка отправки сообщения
     document.getElementById('sendMessageToFriendBtn').onclick = () => {
         modal.classList.remove('show');
         handleChatClick(friendId, friendData.name);
@@ -493,6 +472,14 @@ async function showFriendProfile(friendId, friendName) {
     };
     
     modal.classList.add('show');
+}
+
+window.showFriendProfile = showFriendProfile;
+
+// ========== ПРОФИЛЬ ДРУГА В ЧАТЕ ==========
+async function showFriendProfileFromChat() {
+    if (!currentChat) return;
+    await showFriendProfile(currentChat.id, currentChat.name);
 }
 
 // ========== ЗАГРУЗКА ДРУЗЕЙ ==========
@@ -578,8 +565,6 @@ function renderFriends(friends) {
         });
     });
 }
-
-window.showFriendProfile = showFriendProfile;
 
 // ========== ЧАТЫ ==========
 
@@ -709,6 +694,13 @@ async function openChat(friendId, friendName) {
     document.getElementById('chatInputArea').style.display = 'flex';
     document.getElementById('chatContactName').textContent = friendName;
     document.getElementById('deleteChatBtn').style.display = 'block';
+    
+    // Делаем аватар в чате кликабельным
+    const chatAvatar = document.querySelector('.chat-contact-avatar');
+    if (chatAvatar) {
+        chatAvatar.style.cursor = 'pointer';
+        chatAvatar.onclick = () => showFriendProfileFromChat();
+    }
     
     const chatId = [currentUser.uniqueId, friendId].sort().join('___');
     const messagesRef = firebaseRef(db, 'messages/' + chatId);
@@ -1004,12 +996,11 @@ function setupEventListeners() {
         window.location.href = 'index.html';
     };
     
-   document.getElementById('openProfileBtn').onclick = async () => {
-    // Перезагружаем актуальные данные перед открытием
-    await loadCurrentUser();
-    updateUserUI();
-    document.getElementById('profileModal').classList.add('show');
-};
+    document.getElementById('openProfileBtn').onclick = async () => {
+        await loadCurrentUser();
+        updateUserUI();
+        document.getElementById('profileModal').classList.add('show');
+    };
     document.getElementById('closeProfileModal').onclick = () => {
         document.getElementById('profileModal').classList.remove('show');
     };
@@ -1076,7 +1067,6 @@ function setupEventListeners() {
     
     setupMediaPreview();
     
-    // Поиск
     const friendsSearch = document.getElementById('friendsSearch');
     if (friendsSearch) {
         friendsSearch.addEventListener('input', (e) => {
@@ -1143,6 +1133,13 @@ function openChatMobile(friendId, friendName) {
     document.getElementById('chatAreaHeader').style.display = 'flex';
     document.getElementById('chatInputArea').style.display = 'flex';
     document.getElementById('deleteChatBtn').style.display = 'block';
+    
+    // Делаем аватар в чате кликабельным на мобильных
+    const chatAvatar = document.querySelector('.chat-contact-avatar');
+    if (chatAvatar) {
+        chatAvatar.style.cursor = 'pointer';
+        chatAvatar.onclick = () => showFriendProfileFromChat();
+    }
     
     const chatId = [currentUser.uniqueId, friendId].sort().join('___');
     const messagesRef = firebaseRef(db, 'messages/' + chatId);
@@ -1214,6 +1211,41 @@ window.addEventListener('resize', () => {
     }
 });
 
+// ===== МОБИЛЬНОЕ МЕНЮ =====
+function setupMobileNav() {
+    const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+    const pages = document.querySelectorAll('.page');
+    
+    if (!mobileNavItems.length) return;
+    
+    mobileNavItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const pageName = item.dataset.page;
+            
+            mobileNavItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+            
+            pages.forEach(page => page.classList.remove('active'));
+            
+            if (pageName === 'profile') {
+                document.getElementById('profileModal').classList.add('show');
+                const activePage = document.querySelector('.page.active');
+                if (activePage) activePage.classList.add('active');
+                mobileNavItems.forEach(nav => nav.classList.remove('active'));
+                const prevActive = document.querySelector(`.mobile-nav-item[data-page="${activePage?.id?.replace('Page', '')}"]`);
+                if (prevActive) prevActive.classList.add('active');
+            } else {
+                const targetPage = document.getElementById(`${pageName}Page`);
+                if (targetPage) targetPage.classList.add('active');
+            }
+            
+            if (pageName === 'feed') {
+                loadFeed();
+            }
+        });
+    });
+}
+
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 
 async function init() {
@@ -1227,47 +1259,8 @@ async function init() {
     updateUserUI();
     checkMobile();
     setupMobileNav();
-    updateUserUI();
     console.log('Готово!');
 }
-// ===== МОБИЛЬНОЕ МЕНЮ =====
-function setupMobileNav() {
-    const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
-    const pages = document.querySelectorAll('.page');
-    
-    if (!mobileNavItems.length) return;
-    
-    mobileNavItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const pageName = item.dataset.page;
-            
-            // Обновляем активный класс в мобильном меню
-            mobileNavItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
-            
-            // Показываем нужную страницу
-            pages.forEach(page => page.classList.remove('active'));
-            
-            if (pageName === 'profile') {
-                // Открываем модалку профиля вместо отдельной страницы
-                document.getElementById('profileModal').classList.add('show');
-                // Возвращаем активность на предыдущую страницу
-                const activePage = document.querySelector('.page.active');
-                if (activePage) activePage.classList.add('active');
-                mobileNavItems.forEach(nav => nav.classList.remove('active'));
-                const prevActive = document.querySelector(`.mobile-nav-item[data-page="${activePage?.id?.replace('Page', '')}"]`);
-                if (prevActive) prevActive.classList.add('active');
-            } else {
-                const targetPage = document.getElementById(`${pageName}Page`);
-                if (targetPage) targetPage.classList.add('active');
-            }
-            
-            // Обновляем ленту при переходе
-            if (pageName === 'feed') {
-                loadFeed();
-            }
-        });
-    });
-}
 
+// ЗАПУСК
 init();

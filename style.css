@@ -2620,3 +2620,55 @@ input, textarea, select {
         font-size: 9px;
     }
 }
+.profile-modal-content {
+    position: relative;
+    overflow: visible;
+}
+
+.profile-cover {
+    position: relative;
+    min-height: 130px;
+    border-radius: 20px 20px 0 0;
+    overflow: visible;
+}
+/* Кнопка смены обложки - видимая на всех устройствах */
+.change-cover-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 30px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+/* Для телефонов - кнопка больше и ярче */
+@media (max-width: 768px) {
+    .change-cover-btn {
+        width: 44px;
+        height: 44px;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        font-size: 20px;
+    }
+    
+    /* Кнопка смены аватара тоже увеличим */
+    .change-avatar-btn-large {
+        width: 36px;
+        height: 36px;
+        bottom: 0;
+        right: 0;
+        font-size: 16px;
+    }
+}
