@@ -6,7 +6,7 @@ let currentUser = null;
 let currentChat = null;
 let messageUnsubscribe = null;
 
-// API ключ FreeImage.host (твой ключ)
+// API ключ FreeImage.host
 const FREEIMAGE_API_KEY = '6d207e02198a847aa98d0a2a901485a5';
 
 // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
@@ -31,6 +31,18 @@ function showToast(message, isError = false) {
             toast.style.opacity = '1';
         }, 300);
     }, 3000);
+}
+
+function formatTimeAgo(timestamp) {
+    if (!timestamp) return 'никогда';
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return `${seconds} сек назад`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} мин назад`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} ч назад`;
+    const days = Math.floor(hours / 24);
+    return `${days} дн назад`;
 }
 
 function waitForFirebase() {
@@ -103,7 +115,277 @@ function setupMediaPreview() {
     });
 }
 
-// ========== ЗАГРУЗКА ДРУЗЕЙ (ТОЛЬКО ДРУЗЬЯ) ==========
+// ========== ПРОФИЛЬ (С ИЗМЕНЕНИЕМ ID) ==========
+
+async function loadCurrentUser() {
+    const saved = localStorage.getItem('currentUser');
+    if (!saved) {
+        window.location.href = 'index.html';
+        return;
+    }
+    currentUser = JSON.parse(saved);
+    console.log('Пользователь:', currentUser.name);
+    
+    const usersRef = firebaseRef(db, 'users');
+    const snapshot = await firebaseGet(usersRef);
+    const users = snapshot.val();
+    
+    for (let key in users) {
+        if (users[key].email === currentUser.email) {
+            currentUser.id = key;
+            currentUser.friends = users[key].friends || [];
+            currentUser.avatar = users[key].avatar;
+            currentUser.bio = users[key].bio || '';
+            currentUser.cover = users[key].cover;
+            currentUser.lastIdChange = users[key].lastIdChange || 0;
+            break;
+        }
+    }
+}
+
+function updateUserUI() {
+    const userNameEl = document.getElementById('sidebarUserName');
+    const userIdEl = document.getElementById('sidebarUserUniqueId');
+    const profileNameEl = document.getElementById('profileNameInput');
+    const profileEmailEl = document.getElementById('profileEmailInput');
+    const profileIdEl = document.getElementById('profileIdInput');
+    const profileBioEl = document.getElementById('profileBioInput');
+    const lastIdChangeEl = document.getElementById('lastIdChange');
+    
+    if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email;
+    if (userIdEl) userIdEl.textContent = currentUser.uniqueId || 'ID...';
+    if (profileNameEl) profileNameEl.value = currentUser.name || '';
+    if (profileEmailEl) profileEmailEl.value = currentUser.email || '';
+    if (profileIdEl) profileIdEl.value = currentUser.uniqueId || '';
+    if (profileBioEl) profileBioEl.value = currentUser.bio || '';
+    
+    if (lastIdChangeEl && currentUser.lastIdChange) {
+        lastIdChangeEl.textContent = `ID был изменен: ${formatTimeAgo(currentUser.lastIdChange)}`;
+    }
+    
+    const sidebarAvatar = document.getElementById('sidebarAvatar');
+    if (sidebarAvatar && currentUser.avatar) {
+        sidebarAvatar.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+    }
+    
+    const profileAvatar = document.getElementById('profileAvatarLarge');
+    if (profileAvatar && currentUser.avatar) {
+        profileAvatar.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+    }
+    
+    const profileCover = document.getElementById('profileCover');
+    if (profileCover && currentUser.cover) {
+        profileCover.style.backgroundImage = `url(${currentUser.cover})`;
+        profileCover.style.backgroundSize = 'cover';
+        profileCover.style.backgroundPosition = 'center';
+    }
+}
+
+async function changeUserId() {
+    const newId = document.getElementById('profileIdInput').value.trim().toUpperCase();
+    if (!newId) {
+        showToast('Введите новый ID', true);
+        return;
+    }
+    
+    if (newId === currentUser.uniqueId) {
+        showToast('Это ваш текущий ID', true);
+        return;
+    }
+    
+    if (!/^ID[A-Z0-9]{8}$/.test(newId)) {
+        showToast('ID должен быть формата IDXXXXXXXX (8 символов)', true);
+        return;
+    }
+    
+    // Проверка на 7 дней
+    const daysSinceLastChange = (Date.now() - (currentUser.lastIdChange || 0)) / (1000 * 60 * 60 * 24);
+    if (daysSinceLastChange < 7 && currentUser.lastIdChange) {
+        const daysLeft = Math.ceil(7 - daysSinceLastChange);
+        showToast(`ID можно изменить через ${daysLeft} дней`, true);
+        return;
+    }
+    
+    // Проверка уникальности
+    const usersRef = firebaseRef(db, 'users');
+    const snapshot = await firebaseGet(usersRef);
+    const users = snapshot.val();
+    
+    for (let key in users) {
+        if (users[key].uniqueId === newId && users[key].email !== currentUser.email) {
+            showToast('Этот ID уже занят', true);
+            return;
+        }
+    }
+    
+    // Обновляем ID
+    await firebaseUpdate(firebaseRef(db, 'users/' + currentUser.id), {
+        uniqueId: newId,
+        lastIdChange: Date.now()
+    });
+    
+    const oldId = currentUser.uniqueId;
+    currentUser.uniqueId = newId;
+    currentUser.lastIdChange = Date.now();
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
+    // Обновляем ID в друзьях у всех пользователей
+    for (let key in users) {
+        if (users[key].friends && users[key].friends.includes(oldId)) {
+            const newFriends = users[key].friends.map(id => id === oldId ? newId : id);
+            await firebaseUpdate(firebaseRef(db, 'users/' + key), { friends: newFriends });
+        }
+    }
+    
+    showToast(`✅ ID изменен на ${newId}`);
+    updateUserUI();
+}
+
+async function saveProfile() {
+    const newName = document.getElementById('profileNameInput').value.trim();
+    const newBio = document.getElementById('profileBioInput').value.trim();
+    
+    if (!newName) {
+        showToast('Имя не может быть пустым', true);
+        return;
+    }
+    
+    await firebaseUpdate(firebaseRef(db, 'users/' + currentUser.id), {
+        name: newName,
+        bio: newBio || ''
+    });
+    
+    currentUser.name = newName;
+    currentUser.bio = newBio;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    updateUserUI();
+    showToast('Профиль обновлен');
+    document.getElementById('profileModal').classList.remove('show');
+}
+
+async function changeAvatar() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const avatarData = event.target.result;
+            await firebaseUpdate(firebaseRef(db, 'users/' + currentUser.id), { avatar: avatarData });
+            currentUser.avatar = avatarData;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            updateUserUI();
+            showToast('Аватар обновлен');
+        };
+        reader.readAsDataURL(file);
+    };
+    input.click();
+}
+
+async function changeCover() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const coverData = event.target.result;
+            await firebaseUpdate(firebaseRef(db, 'users/' + currentUser.id), { cover: coverData });
+            document.getElementById('profileCover').style.backgroundImage = `url(${coverData})`;
+            showToast('Обложка обновлена');
+        };
+        reader.readAsDataURL(file);
+    };
+    input.click();
+}
+
+// ========== ПРОФИЛЬ ДРУГА ==========
+
+async function showFriendProfile(friendId, friendName) {
+    const usersRef = firebaseRef(db, 'users');
+    const snapshot = await firebaseGet(usersRef);
+    const users = snapshot.val();
+    
+    let friendData = null;
+    for (let key in users) {
+        if (users[key].uniqueId === friendId) {
+            friendData = { ...users[key], id: key };
+            break;
+        }
+    }
+    
+    if (!friendData) {
+        showToast('Данные пользователя не найдены', true);
+        return;
+    }
+    
+    // Создаем модалку для профиля друга
+    let modal = document.getElementById('friendProfileModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'friendProfileModal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content friend-profile-modal">
+                <button class="close-modal" id="closeFriendProfileModal">✕</button>
+                <div class="friend-profile-header">
+                    <div class="friend-profile-avatar" id="friendProfileAvatar">👤</div>
+                    <div class="friend-profile-name" id="friendProfileName"></div>
+                    <div class="friend-profile-id" id="friendProfileId"></div>
+                </div>
+                <div class="friend-profile-bio" id="friendProfileBio"></div>
+                <div class="friend-profile-stats">
+                    <div class="friend-profile-stat">
+                        <div class="friend-profile-stat-value" id="friendMutualFriends">0</div>
+                        <div class="friend-profile-stat-label">Общих друзей</div>
+                    </div>
+                </div>
+                <button id="sendMessageToFriendBtn" class="submit-btn">💬 Написать сообщение</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        document.getElementById('closeFriendProfileModal').onclick = () => {
+            modal.classList.remove('show');
+        };
+        modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('show'); };
+    }
+    
+    // Заполняем данные
+    document.getElementById('friendProfileName').textContent = friendData.name;
+    document.getElementById('friendProfileId').textContent = friendData.uniqueId;
+    document.getElementById('friendProfileBio').textContent = friendData.bio || 'Пользователь ничего не рассказал о себе';
+    
+    const avatarEl = document.getElementById('friendProfileAvatar');
+    if (friendData.avatar) {
+        avatarEl.innerHTML = `<img src="${friendData.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+    } else {
+        avatarEl.innerHTML = '👤';
+    }
+    
+    // Подсчет общих друзей
+    const currentUserFriends = currentUser.friends || [];
+    const friendFriends = friendData.friends || [];
+    const mutualFriends = currentUserFriends.filter(id => friendFriends.includes(id));
+    document.getElementById('friendMutualFriends').textContent = mutualFriends.length;
+    
+    // Кнопка отправки сообщения
+    document.getElementById('sendMessageToFriendBtn').onclick = () => {
+        modal.classList.remove('show');
+        handleChatClick(friendId, friendData.name);
+        document.querySelector('.nav-item[data-page="chats"]').click();
+    };
+    
+    modal.classList.add('show');
+}
+
+// ========== ЗАГРУЗКА ДРУЗЕЙ ==========
 
 async function loadFriends() {
     const usersRef = firebaseRef(db, 'users');
@@ -112,11 +394,11 @@ async function loadFriends() {
     if (!users) return;
     
     let currentUserData = null;
-    let currentUserKey = null;
     for (let key in users) {
         if (users[key].email === currentUser.email) {
             currentUserData = users[key];
-            currentUserKey = key;
+            currentUser.id = key;
+            currentUser.friends = users[key].friends || [];
             break;
         }
     }
@@ -124,7 +406,6 @@ async function loadFriends() {
     if (!currentUserData) return;
     
     const friendsIds = currentUserData.friends || [];
-    
     const friendsList = [];
     for (let friendId of friendsIds) {
         for (let key in users) {
@@ -134,7 +415,8 @@ async function loadFriends() {
                     name: users[key].name,
                     email: users[key].email,
                     uniqueId: users[key].uniqueId,
-                    avatar: users[key].avatar
+                    avatar: users[key].avatar,
+                    bio: users[key].bio
                 });
                 break;
             }
@@ -154,8 +436,8 @@ function renderFriends(friends) {
     
     container.innerHTML = friends.map(friend => `
         <div class="friend-card" data-id="${friend.uniqueId}">
-            <div class="friend-avatar">${friend.avatar ? `<img src="${friend.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤'}</div>
-            <div class="friend-info">
+            <div class="friend-avatar" onclick="window.showFriendProfile('${friend.uniqueId}', '${escapeHtml(friend.name)}')" style="cursor:pointer">${friend.avatar ? `<img src="${friend.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤'}</div>
+            <div class="friend-info" onclick="window.showFriendProfile('${friend.uniqueId}', '${escapeHtml(friend.name)}')" style="cursor:pointer">
                 <div class="friend-name">${escapeHtml(friend.name)}</div>
                 <div class="friend-id">${friend.uniqueId}</div>
             </div>
@@ -167,16 +449,18 @@ function renderFriends(friends) {
     `).join('');
     
     document.querySelectorAll('.friend-msg-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
             const friendId = btn.dataset.id;
             const friendName = btn.dataset.name;
-            openChat(friendId, friendName);
+            handleChatClick(friendId, friendName);
             document.querySelector('.nav-item[data-page="chats"]').click();
         });
     });
     
     document.querySelectorAll('.friend-remove-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
             const friendId = btn.dataset.id;
             if (confirm('Удалить друга?')) {
                 await removeFriend(friendId);
@@ -184,34 +468,13 @@ function renderFriends(friends) {
         });
     });
 }
-function renderChats(friends) {
-    if (isMobile) {
-        renderChatsMobile(friends);
-    } else {
-        const container = document.getElementById('chatsList');
-        if (!friends.length) {
-            container.innerHTML = '<div class="empty-state">Нет чатов<br><br>👉 Добавьте друзей чтобы начать общение</div>';
-            return;
-        }
-        
-        container.innerHTML = friends.map(friend => `
-            <div class="chat-item" data-id="${friend.uniqueId}" data-name="${escapeHtml(friend.name)}">
-                <div class="chat-item-avatar">${friend.avatar ? `<img src="${friend.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤'}</div>
-                <div class="chat-item-info">
-                    <div class="chat-item-name">${escapeHtml(friend.name)}</div>
-                    <div class="chat-item-lastmsg">Нажмите для чата</div>
-                </div>
-            </div>
-        `).join('');
-        
-        document.querySelectorAll('.chat-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const friendId = item.dataset.id;
-                const friendName = item.dataset.name;
-                openChat(friendId, friendName);
-            });
-        });
-    }
+
+window.showFriendProfile = showFriendProfile;
+
+// ========== ЧАТЫ ==========
+
+async function loadChats() {
+    await loadFriends();
 }
 
 async function removeFriend(friendId) {
@@ -219,22 +482,19 @@ async function removeFriend(friendId) {
     const snapshot = await firebaseGet(usersRef);
     const users = snapshot.val();
     
-    let currentUserKey = null;
     let friendUserKey = null;
-    
     for (let key in users) {
-        if (users[key].email === currentUser.email) {
-            currentUserKey = key;
-        }
         if (users[key].uniqueId === friendId) {
             friendUserKey = key;
+            break;
         }
     }
     
-    if (currentUserKey && friendUserKey) {
-        let currentFriends = users[currentUserKey].friends || [];
+    if (currentUser.id && friendUserKey) {
+        let currentFriends = currentUser.friends || [];
         currentFriends = currentFriends.filter(id => id !== friendId);
-        await firebaseUpdate(firebaseRef(db, 'users/' + currentUserKey), { friends: currentFriends });
+        await firebaseUpdate(firebaseRef(db, 'users/' + currentUser.id), { friends: currentFriends });
+        currentUser.friends = currentFriends;
         
         let friendFriends = users[friendUserKey].friends || [];
         friendFriends = friendFriends.filter(id => id !== currentUser.uniqueId);
@@ -242,7 +502,6 @@ async function removeFriend(friendId) {
         
         showToast('Друг удален');
         await loadFriends();
-        await loadChats();
         
         if (currentChat && currentChat.id === friendId) {
             document.getElementById('chatMessagesArea').innerHTML = '<div class="empty-chat"><div class="empty-chat-icon">💬</div><p>Чат закрыт</p></div>';
@@ -290,15 +549,7 @@ async function searchAndAddFriend() {
         return;
     }
     
-    let currentUserKey = null;
-    for (let key in users) {
-        if (users[key].email === currentUser.email) {
-            currentUserKey = key;
-            break;
-        }
-    }
-    
-    const currentFriends = users[currentUserKey].friends || [];
+    const currentFriends = currentUser.friends || [];
     if (currentFriends.includes(friendId)) {
         showToast('Этот пользователь уже в друзьях', true);
         return;
@@ -318,7 +569,8 @@ async function searchAndAddFriend() {
     document.getElementById('confirmAddFriendBtn').onclick = async () => {
         let updatedFriends = currentFriends;
         updatedFriends.push(friendId);
-        await firebaseUpdate(firebaseRef(db, 'users/' + currentUserKey), { friends: updatedFriends });
+        await firebaseUpdate(firebaseRef(db, 'users/' + currentUser.id), { friends: updatedFriends });
+        currentUser.friends = updatedFriends;
         
         let friendFriends = users[foundUserKey].friends || [];
         if (!friendFriends.includes(currentUser.uniqueId)) {
@@ -331,7 +583,6 @@ async function searchAndAddFriend() {
         document.getElementById('friendIdInput').value = '';
         resultDiv.innerHTML = '';
         await loadFriends();
-        await loadChats();
     };
 }
 
@@ -422,164 +673,7 @@ async function deleteChat() {
     }
 }
 
-// ========== ПРОФИЛЬ ==========
-async function loadCurrentUser() {
-    const saved = localStorage.getItem('currentUser');
-    if (!saved) {
-        window.location.href = 'index.html';
-        return;
-    }
-    currentUser = JSON.parse(saved);
-    console.log('Пользователь:', currentUser.name);
-    
-    // Загружаем актуальные данные из Firebase
-    const usersRef = firebaseRef(db, 'users');
-    const snapshot = await firebaseGet(usersRef);
-    const users = snapshot.val();
-    
-    for (let key in users) {
-        if (users[key].email === currentUser.email) {
-            currentUser.id = key;
-            currentUser.friends = users[key].friends || [];
-            currentUser.avatar = users[key].avatar;
-            currentUser.bio = users[key].bio || '';
-            currentUser.cover = users[key].cover;
-            break;
-        }
-    }
-}
-
-
-function updateUserUI() {
-    const userNameEl = document.getElementById('sidebarUserName');
-    const userIdEl = document.getElementById('sidebarUserUniqueId');
-    const profileNameEl = document.getElementById('profileNameInput');
-    const profileEmailEl = document.getElementById('profileEmailInput');
-    const profileIdEl = document.getElementById('profileIdInput');
-    const profileBioEl = document.getElementById('profileBioInput');
-    
-    if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email;
-    if (userIdEl) userIdEl.textContent = currentUser.uniqueId || 'ID...';
-    if (profileNameEl) profileNameEl.value = currentUser.name || '';
-    if (profileEmailEl) profileEmailEl.value = currentUser.email || '';
-    if (profileIdEl) profileIdEl.value = currentUser.uniqueId || '';
-    if (profileBioEl) profileBioEl.value = currentUser.bio || '';
-    
-    // Аватар в сайдбаре
-    const sidebarAvatar = document.getElementById('sidebarAvatar');
-    if (sidebarAvatar && currentUser.avatar) {
-        sidebarAvatar.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
-    }
-    
-    // Аватар в профиле
-    const profileAvatar = document.getElementById('profileAvatarLarge');
-    if (profileAvatar && currentUser.avatar) {
-        profileAvatar.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
-    }
-    
-    // Обложка профиля
-    const profileCover = document.getElementById('profileCover');
-    if (profileCover && currentUser.cover) {
-        profileCover.style.backgroundImage = `url(${currentUser.cover})`;
-        profileCover.style.backgroundSize = 'cover';
-        profileCover.style.backgroundPosition = 'center';
-    }
-}
-
-async function saveProfile() {
-    const newName = document.getElementById('profileNameInput').value.trim();
-    const newBio = document.getElementById('profileBioInput').value.trim();
-    
-    if (!newName) {
-        showToast('Имя не может быть пустым', true);
-        return;
-    }
-    
-    const usersRef = firebaseRef(db, 'users');
-    const snapshot = await firebaseGet(usersRef);
-    const users = snapshot.val();
-    
-    for (let key in users) {
-        if (users[key].email === currentUser.email) {
-            await firebaseUpdate(firebaseRef(db, 'users/' + key), { 
-                name: newName,
-                bio: newBio || ''
-            });
-            break;
-        }
-    }
-    
-    currentUser.name = newName;
-    currentUser.bio = newBio;
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    updateUserUI();
-    showToast('Профиль обновлен');
-    document.getElementById('profileModal').classList.remove('show');
-}
-
-async function changeAvatar() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            const avatarData = event.target.result;
-            const usersRef = firebaseRef(db, 'users');
-            const snapshot = await firebaseGet(usersRef);
-            const users = snapshot.val();
-            
-            for (let key in users) {
-                if (users[key].email === currentUser.email) {
-                    await firebaseUpdate(firebaseRef(db, 'users/' + key), { avatar: avatarData });
-                    break;
-                }
-            }
-            
-            currentUser.avatar = avatarData;
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            updateUserUI();
-            showToast('Аватар обновлен');
-        };
-        reader.readAsDataURL(file);
-    };
-    input.click();
-}
-
-async function changeCover() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            const coverData = event.target.result;
-            const usersRef = firebaseRef(db, 'users');
-            const snapshot = await firebaseGet(usersRef);
-            const users = snapshot.val();
-            
-            for (let key in users) {
-                if (users[key].email === currentUser.email) {
-                    await firebaseUpdate(firebaseRef(db, 'users/' + key), { cover: coverData });
-                    break;
-                }
-            }
-            
-            document.getElementById('profileCover').style.backgroundImage = `url(${coverData})`;
-            showToast('Обложка обновлена');
-        };
-        reader.readAsDataURL(file);
-    };
-    input.click();
-}
-
-// ========== ЛЕНТА С ПОСТАМИ ==========
+// ========== ЛЕНТА ==========
 
 async function createPost() {
     const content = document.getElementById('postContent').value.trim();
@@ -645,8 +739,8 @@ async function loadFeed() {
     container.innerHTML = postsArray.map(post => `
         <div class="post-card">
             <div class="post-header">
-                <div class="post-avatar">${post.authorAvatar ? `<img src="${post.authorAvatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤'}</div>
-                <div>
+                <div class="post-avatar" onclick="window.showFriendProfile('${post.authorId}', '${escapeHtml(post.authorName)}')" style="cursor:pointer">${post.authorAvatar ? `<img src="${post.authorAvatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤'}</div>
+                <div onclick="window.showFriendProfile('${post.authorId}', '${escapeHtml(post.authorName)}')" style="cursor:pointer">
                     <div class="post-author">${escapeHtml(post.authorName)}</div>
                     <div class="post-time">${new Date(post.time).toLocaleString()}</div>
                 </div>
@@ -773,7 +867,7 @@ function initSnakeGame() {
     draw();
 }
 
-// ========== НАВИГАЦИЯ И СОБЫТИЯ ==========
+// ========== НАВИГАЦИЯ ==========
 
 function setupNavigation() {
     const navItems = document.querySelectorAll('.nav-item');
@@ -793,53 +887,13 @@ function setupNavigation() {
         });
     });
 }
-// Поиск по друзьям
-function setupFriendSearch() {
-    const friendsSearch = document.getElementById('friendsSearch');
-    if (!friendsSearch) return;
-    
-    friendsSearch.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
-        const friendCards = document.querySelectorAll('.friend-card');
-        
-        friendCards.forEach(card => {
-            const name = card.querySelector('.friend-name')?.textContent.toLowerCase() || '';
-            if (name.includes(query)) {
-                card.style.display = 'flex';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    });
-}
 
-// Поиск по чатам
-function setupChatSearch() {
-    const chatsSearch = document.getElementById('chatsSearch');
-    if (!chatsSearch) return;
-    
-    chatsSearch.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
-        const chatItems = document.querySelectorAll('.chat-item');
-        
-        chatItems.forEach(item => {
-            const name = item.querySelector('.chat-item-name')?.textContent.toLowerCase() || '';
-            if (name.includes(query)) {
-                item.style.display = 'flex';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    });
-}
 function setupEventListeners() {
-    // Выход
     document.getElementById('logoutBtnSidebar').onclick = () => {
         localStorage.removeItem('currentUser');
         window.location.href = 'index.html';
     };
     
-    // Профиль
     document.getElementById('openProfileBtn').onclick = () => {
         document.getElementById('profileModal').classList.add('show');
     };
@@ -849,8 +903,8 @@ function setupEventListeners() {
     document.getElementById('saveProfileChangesBtn').onclick = saveProfile;
     document.getElementById('changeAvatarBtn').onclick = changeAvatar;
     document.getElementById('changeCoverBtn').onclick = changeCover;
+    document.getElementById('changeIdBtn').onclick = changeUserId;
     
-    // Добавление друга
     document.getElementById('addFriendHeaderBtn').onclick = () => {
         document.getElementById('addFriendModal').classList.add('show');
     };
@@ -861,14 +915,12 @@ function setupEventListeners() {
     };
     document.getElementById('searchFriendBtnModal').onclick = searchAndAddFriend;
     
-    // Сообщения
     document.getElementById('sendMessageBtn').onclick = sendMessage;
     document.getElementById('messageInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
     document.getElementById('deleteChatBtn').onclick = deleteChat;
     
-    // Посты
     document.getElementById('createPostBtn').onclick = () => {
         document.getElementById('createPostModal').classList.add('show');
     };
@@ -880,7 +932,6 @@ function setupEventListeners() {
     };
     document.getElementById('publishPostBtn').onclick = createPost;
     
-    // Игры
     document.querySelectorAll('.game-card').forEach(card => {
         card.addEventListener('click', () => {
             const game = card.dataset.game;
@@ -903,7 +954,6 @@ function setupEventListeners() {
         initSnakeGame();
     };
     
-    // Закрытие модалок по клику на фон
     const modals = document.querySelectorAll('.modal');
     modals.forEach(modal => {
         modal.onclick = (e) => {
@@ -911,10 +961,9 @@ function setupEventListeners() {
         };
     });
     
-    // Предпросмотр медиа (ТОЛЬКО ОДИН РАЗ)
     setupMediaPreview();
     
-    // ===== ПОИСК ПО ДРУЗЬЯМ =====
+    // Поиск
     const friendsSearch = document.getElementById('friendsSearch');
     if (friendsSearch) {
         friendsSearch.addEventListener('input', (e) => {
@@ -926,7 +975,6 @@ function setupEventListeners() {
         });
     }
     
-    // ===== ПОИСК ПО ЧАТАМ =====
     const chatsSearch = document.getElementById('chatsSearch');
     if (chatsSearch) {
         chatsSearch.addEventListener('input', (e) => {
@@ -939,20 +987,6 @@ function setupEventListeners() {
     }
 }
 
-// ========== ИНИЦИАЛИЗАЦИЯ ==========
-
-async function init() {
-    console.log('Инициализация...');
-    await waitForFirebase();
-    await loadCurrentUser();
-    setupNavigation();
-    setupEventListeners();
-    await loadFriends();
-    await loadChats();
-    await loadFeed();
-    updateUserUI();
-    console.log('Готово!');
-}
 // ========== МОБИЛЬНАЯ НАВИГАЦИЯ ==========
 
 let isMobile = window.innerWidth <= 768;
@@ -962,22 +996,18 @@ function checkMobile() {
     return isMobile;
 }
 
-// Открыть чат на мобильном (полноэкранный режим)
 function openChatMobile(friendId, friendName) {
     if (!isMobile) {
-        // Если десктоп - обычное поведение
         openChat(friendId, friendName);
         return;
     }
     
-    // Мобильное поведение
     if (messageUnsubscribe) {
         messageUnsubscribe();
     }
     
     currentChat = { id: friendId, name: friendName };
     
-    // Скрываем список чатов, показываем область чата
     const chatsSidebar = document.querySelector('.chats-sidebar');
     const chatArea = document.querySelector('.chat-area');
     
@@ -987,7 +1017,6 @@ function openChatMobile(friendId, friendName) {
         chatArea.style.display = 'flex';
     }
     
-    // Добавляем кнопку назад в шапку чата, если её нет
     const chatHeader = document.querySelector('.chat-area-header');
     if (chatHeader && !chatHeader.querySelector('.back-button')) {
         const backBtn = document.createElement('button');
@@ -1011,7 +1040,6 @@ function openChatMobile(friendId, friendName) {
     });
 }
 
-// Закрыть чат на мобильном (вернуться к списку чатов)
 function closeChatMobile() {
     const chatsSidebar = document.querySelector('.chats-sidebar');
     const chatArea = document.querySelector('.chat-area');
@@ -1022,7 +1050,6 @@ function closeChatMobile() {
         chatArea.style.display = 'none';
     }
     
-    // Отписываемся от сообщений
     if (messageUnsubscribe) {
         messageUnsubscribe();
         messageUnsubscribe = null;
@@ -1031,7 +1058,6 @@ function closeChatMobile() {
     currentChat = null;
 }
 
-// Переопределяем openChat для мобильных
 function handleChatClick(friendId, friendName) {
     if (isMobile) {
         openChatMobile(friendId, friendName);
@@ -1040,8 +1066,7 @@ function handleChatClick(friendId, friendName) {
     }
 }
 
-// Обновляем рендер чатов для мобильных
-function renderChatsMobile(friends) {
+function renderChats(friends) {
     const container = document.getElementById('chatsList');
     if (!friends.length) {
         container.innerHTML = '<div class="empty-state">Нет чатов<br><br>👉 Добавьте друзей чтобы начать общение</div>';
@@ -1067,11 +1092,9 @@ function renderChatsMobile(friends) {
     });
 }
 
-// Следим за изменением размера окна (поворот телефона)
 window.addEventListener('resize', () => {
     isMobile = window.innerWidth <= 768;
     if (!isMobile) {
-        // Если перешли на десктопный вид - закрываем мобильный чат
         closeChatMobile();
         const chatsSidebar = document.querySelector('.chats-sidebar');
         if (chatsSidebar) chatsSidebar.style.display = 'flex';
@@ -1087,12 +1110,10 @@ async function init() {
     setupNavigation();
     setupEventListeners();
     await loadFriends();
-    await loadChats();
     await loadFeed();
     updateUserUI();
-    checkMobile(); // Проверяем тип устройства
+    checkMobile();
     console.log('Готово!');
 }
 
-// ЗАПУСК
 init();

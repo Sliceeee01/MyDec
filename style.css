@@ -1983,3 +1983,81 @@ body {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+/* ===== ПРОФИЛЬ ДРУГА ===== */
+.friend-profile-modal .modal-content {
+    max-width: 400px;
+}
+
+.friend-profile-header {
+    text-align: center;
+    padding: 20px;
+}
+
+.friend-profile-avatar {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 15px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px;
+    overflow: hidden;
+}
+
+.friend-profile-name {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.friend-profile-id {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 15px;
+}
+
+.friend-profile-bio {
+    font-size: 14px;
+    padding: 15px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    margin: 10px 0;
+}
+
+.friend-profile-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 15px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    margin: 15px 0;
+}
+
+.friend-profile-stat {
+    text-align: center;
+}
+
+.friend-profile-stat-value {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.friend-profile-stat-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+}
+
+.last-id-change {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 8px;
+    text-align: center;
+}
+
+.id-change-warning {
+    font-size: 11px;
+    color: #ffaa00;
+    margin-top: 5px;
+}

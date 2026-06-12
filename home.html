@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Slicemes - Главная</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -58,10 +58,9 @@
                     <div class="chats-sidebar">
                         <div class="chats-header">
                             <h2>Сообщения</h2>
-                            <button class="new-chat-btn" id="newChatBtn">➕</button>
                         </div>
                         <div class="chats-search">
-                            <input type="text" id="chatsSearch" placeholder="Поиск чатов...">
+                            <input type="text" id="chatsSearch" placeholder="🔍 Поиск чатов...">
                         </div>
                         <div class="chats-list" id="chatsList">
                             <div class="empty-state">Нет чатов</div>
@@ -86,7 +85,7 @@
                         </div>
                         <div class="chat-input-area" id="chatInputArea" style="display: none;">
                             <input type="text" id="messageInput" placeholder="Сообщение...">
-                            <button id="sendMessageBtn">Отправить</button>
+                            <button id="sendMessageBtn">📤</button>
                         </div>
                     </div>
                 </div>
@@ -100,7 +99,7 @@
                         <button class="add-friend-header-btn" id="addFriendHeaderBtn">➕ Добавить друга</button>
                     </div>
                     <div class="friends-search">
-                        <input type="text" id="friendsSearch" placeholder="Поиск друзей...">
+                        <input type="text" id="friendsSearch" placeholder="🔍 Поиск друзей...">
                     </div>
                     <div class="friends-grid" id="friendsGrid">
                         <div class="empty-state">У вас пока нет друзей</div>
@@ -149,7 +148,7 @@
         </main>
     </div>
 
-    <!-- Модалка добавления друга -->
+    <!-- МОДАЛКА: ДОБАВИТЬ ДРУГА -->
     <div id="addFriendModal" class="modal">
         <div class="modal-content">
             <button class="close-modal" id="closeAddFriendModal">✕</button>
@@ -162,44 +161,59 @@
                 <input type="text" id="friendIdInput" placeholder="Введите ID пользователя">
             </div>
             <button id="searchFriendBtnModal" class="submit-btn">Найти</button>
-            <div id="searchResultModal"></div>
+            <div id="searchResultModal" style="margin-top: 15px;"></div>
+            <p style="text-align:center; color: rgba(255,255,255,0.4); font-size: 12px; margin-top: 15px;">
+                Ваш ID: <strong id="myIdInAddFriend">...</strong>
+            </p>
         </div>
     </div>
 
-    <!-- Модалка профиля -->
+    <!-- МОДАЛКА: ПРОФИЛЬ (СВОЙ) -->
     <div id="profileModal" class="modal">
         <div class="modal-content profile-modal-content">
             <button class="close-modal" id="closeProfileModal">✕</button>
+            
             <div class="profile-cover" id="profileCover">
-                <button class="change-cover-btn" id="changeCoverBtn">📷</button>
+                <button class="change-cover-btn" id="changeCoverBtn">📷 Сменить обложку</button>
             </div>
+            
             <div class="profile-avatar-wrapper">
                 <div class="profile-avatar-large" id="profileAvatarLarge">👤</div>
                 <button class="change-avatar-btn-large" id="changeAvatarBtn">📷</button>
             </div>
+            
             <div class="profile-info-container">
                 <div class="profile-field">
-                    <label>Имя</label>
-                    <input type="text" id="profileNameInput">
+                    <label>Имя пользователя</label>
+                    <input type="text" id="profileNameInput" placeholder="Ваше имя">
                 </div>
+                
                 <div class="profile-field">
                     <label>О себе</label>
-                    <textarea id="profileBioInput" rows="3"></textarea>
+                    <textarea id="profileBioInput" rows="3" placeholder="Расскажите о себе..."></textarea>
                 </div>
+                
                 <div class="profile-field">
                     <label>Email</label>
                     <input type="email" id="profileEmailInput" readonly disabled>
                 </div>
+                
                 <div class="profile-field">
                     <label>Мой ID</label>
-                    <input type="text" id="profileIdInput" readonly disabled>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="profileIdInput" readonly disabled style="flex:1">
+                        <button id="changeIdBtn" class="submit-btn" style="width: auto; padding: 0 15px; margin:0;">✏️</button>
+                    </div>
+                    <div class="last-id-change" id="lastIdChange"></div>
+                    <div class="id-change-warning">⚠️ ID можно изменить раз в 7 дней</div>
                 </div>
-                <button id="saveProfileChangesBtn" class="submit-btn">Сохранить</button>
+                
+                <button id="saveProfileChangesBtn" class="submit-btn">💾 Сохранить изменения</button>
             </div>
         </div>
     </div>
 
-    <!-- Модалка создания поста -->
+    <!-- МОДАЛКА: СОЗДАТЬ ПОСТ -->
     <div id="createPostModal" class="modal">
         <div class="modal-content">
             <button class="close-modal" id="closePostModal">✕</button>
@@ -214,21 +228,22 @@
                 <input type="file" id="postMediaFile" accept="image/*,video/*">
                 <div id="mediaPreview" style="margin-top: 10px;"></div>
             </div>
-            <button id="publishPostBtn" class="submit-btn">Опубликовать</button>
+            <button id="publishPostBtn" class="submit-btn">📤 Опубликовать</button>
         </div>
     </div>
 
-    <!-- Модалка игры Змейка -->
+    <!-- МОДАЛКА: ИГРА ЗМЕЙКА -->
     <div id="snakeGameModal" class="modal">
         <div class="modal-content game-modal">
             <button class="close-modal" id="closeGameModal">✕</button>
-            <h2>Змейка</h2>
+            <h2>🐍 Змейка</h2>
             <canvas id="snakeCanvas" width="400" height="400"></canvas>
             <p>Счет: <span id="snakeScore">0</span></p>
-            <button id="restartSnakeBtn" class="submit-btn">Начать заново</button>
+            <button id="restartSnakeBtn" class="submit-btn">🔄 Начать заново</button>
         </div>
     </div>
 
+    <!-- УВЕДОМЛЕНИЯ -->
     <div id="toast" class="toast" style="display: none;"></div>
 
     <script type="module">
