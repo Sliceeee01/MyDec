@@ -142,7 +142,6 @@ async function loadCurrentUser() {
         }
     }
 }
-
 function updateUserUI() {
     const userNameEl = document.getElementById('sidebarUserName');
     const userIdEl = document.getElementById('sidebarUserUniqueId');
@@ -153,7 +152,15 @@ function updateUserUI() {
     const lastIdChangeEl = document.getElementById('lastIdChange');
     const idChangeWarningEl = document.querySelector('.id-change-warning');
     
-    if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email;
+    // Проверяем что currentUser существует
+    if (!currentUser) {
+        console.log('currentUser не загружен');
+        return;
+    }
+    
+    console.log('Обновляем UI с данными:', currentUser.name, currentUser.uniqueId);
+    
+    if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email || 'Пользователь';
     if (userIdEl) userIdEl.textContent = currentUser.uniqueId || 'ID...';
     if (profileNameEl) profileNameEl.value = currentUser.name || '';
     if (profileEmailEl) profileEmailEl.value = currentUser.email || '';
@@ -168,51 +175,46 @@ function updateUserUI() {
         const canChangeAgain = daysSinceLastChange >= 7;
         
         if (canChangeAgain) {
-            // Можно менять ID снова
             if (lastIdChangeEl) {
                 lastIdChangeEl.textContent = '✅ Вы можете изменить ID';
                 lastIdChangeEl.style.color = '#00ff88';
             }
-            if (idChangeWarningEl) idChangeWarningEl.style.display = 'block';
         } else {
-            // Нельзя менять ID, показываем таймер
             const daysLeft = Math.ceil(7 - daysSinceLastChange);
             const hoursLeft = Math.ceil((7 - daysSinceLastChange) * 24);
-            let timeText = '';
-            if (daysLeft > 0) {
-                timeText = `${daysLeft} дн`;
-            } else {
-                timeText = `${hoursLeft} ч`;
-            }
+            let timeText = daysLeft > 0 ? `${daysLeft} дн` : `${hoursLeft} ч`;
             if (lastIdChangeEl) {
                 lastIdChangeEl.textContent = `⚠️ ID был изменен ${formatTimeAgo(currentUser.lastIdChange)}. Следующая смена через ${timeText}`;
                 lastIdChangeEl.style.color = '#ffaa00';
             }
-            if (idChangeWarningEl) idChangeWarningEl.style.display = 'block';
         }
     } else {
-        // ID никогда не менялся
         if (lastIdChangeEl) {
             lastIdChangeEl.textContent = '✨ ID не менялся';
             lastIdChangeEl.style.color = 'rgba(255,255,255,0.5)';
         }
-        if (idChangeWarningEl) idChangeWarningEl.style.display = 'block';
     }
+    
+    if (idChangeWarningEl) idChangeWarningEl.style.display = 'block';
     
     // Аватар в сайдбаре
     const sidebarAvatar = document.getElementById('sidebarAvatar');
-    if (sidebarAvatar && currentUser.avatar) {
-        sidebarAvatar.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
-    } else if (sidebarAvatar) {
-        sidebarAvatar.innerHTML = '👤';
+    if (sidebarAvatar) {
+        if (currentUser.avatar) {
+            sidebarAvatar.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+        } else {
+            sidebarAvatar.innerHTML = '👤';
+        }
     }
     
     // Аватар в профиле
     const profileAvatar = document.getElementById('profileAvatarLarge');
-    if (profileAvatar && currentUser.avatar) {
-        profileAvatar.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
-    } else if (profileAvatar) {
-        profileAvatar.innerHTML = '👤';
+    if (profileAvatar) {
+        if (currentUser.avatar) {
+            profileAvatar.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+        } else {
+            profileAvatar.innerHTML = '👤';
+        }
     }
     
     // Обложка профиля
@@ -223,7 +225,6 @@ function updateUserUI() {
             profileCover.style.backgroundSize = 'cover';
             profileCover.style.backgroundPosition = 'center';
         } else {
-            // Дефолтная обложка
             profileCover.style.backgroundImage = 'linear-gradient(135deg, #1a1a1a, #0a0a0a)';
         }
     }
@@ -363,7 +364,6 @@ async function changeAvatar() {
     };
     input.click();
 }
-
 async function changeCover() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -379,12 +379,12 @@ async function changeCover() {
             const coverData = event.target.result;
             
             try {
-                // Сохраняем обложку в Firebase
+                // Сохраняем в Firebase
                 await firebaseUpdate(firebaseRef(db, 'users/' + currentUser.id), { 
                     cover: coverData 
                 });
                 
-                // Обновляем локальные данные
+                // Обновляем локально
                 currentUser.cover = coverData;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 
@@ -996,9 +996,12 @@ function setupEventListeners() {
         window.location.href = 'index.html';
     };
     
-    document.getElementById('openProfileBtn').onclick = () => {
-        document.getElementById('profileModal').classList.add('show');
-    };
+   document.getElementById('openProfileBtn').onclick = async () => {
+    // Перезагружаем актуальные данные перед открытием
+    await loadCurrentUser();
+    updateUserUI();
+    document.getElementById('profileModal').classList.add('show');
+};
     document.getElementById('closeProfileModal').onclick = () => {
         document.getElementById('profileModal').classList.remove('show');
     };
@@ -1216,6 +1219,7 @@ async function init() {
     updateUserUI();
     checkMobile();
     setupMobileNav();
+    updateUserUI();
     console.log('Готово!');
 }
 // ===== МОБИЛЬНОЕ МЕНЮ =====

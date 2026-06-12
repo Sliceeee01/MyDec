@@ -2502,3 +2502,121 @@ input, textarea, select {
 .mobile-bottom-nav {
     display: none;
 }
+/* Кнопка смены обложки (карандашик в углу) */
+.change-cover-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.change-cover-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.05);
+}
+
+/* Кнопка смены аватара (карандашик) */
+.change-avatar-btn-large {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.change-avatar-btn-large:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.05);
+}
+/* ===== МОБИЛЬНОЕ МЕНЮ - ПОКАЗЫВАЕМ ТОЛЬКО НА ТЕЛЕФОНАХ ===== */
+.mobile-bottom-nav {
+    display: none;
+}
+
+/* Телефоны и планшеты (ширина до 768px) */
+@media (max-width: 768px) {
+    .mobile-bottom-nav {
+        display: flex !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(10, 10, 10, 0.95);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        justify-content: space-around;
+        align-items: center;
+        padding: 8px 12px;
+        z-index: 1000;
+        height: 60px;
+    }
+    
+    .mobile-nav-item {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px 12px;
+        border-radius: 12px;
+        transition: all 0.2s;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .mobile-nav-icon {
+        width: 24px;
+        height: 24px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        display: block;
+    }
+    
+    .mobile-nav-text {
+        font-size: 10px;
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+    .mobile-bottom-nav {
+        padding: 5px 8px;
+        height: 55px;
+    }
+    
+    .mobile-nav-item {
+        padding: 4px 8px;
+    }
+    
+    .mobile-nav-icon {
+        width: 22px;
+        height: 22px;
+    }
+    
+    .mobile-nav-text {
+        font-size: 9px;
+    }
+}
