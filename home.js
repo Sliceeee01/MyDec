@@ -184,31 +184,34 @@ function renderFriends(friends) {
         });
     });
 }
-
 function renderChats(friends) {
-    const container = document.getElementById('chatsList');
-    if (!friends.length) {
-        container.innerHTML = '<div class="empty-state">Нет чатов<br><br>👉 Добавьте друзей чтобы начать общение</div>';
-        return;
-    }
-    
-    container.innerHTML = friends.map(friend => `
-        <div class="chat-item" data-id="${friend.uniqueId}" data-name="${escapeHtml(friend.name)}">
-            <div class="chat-item-avatar">${friend.avatar ? `<img src="${friend.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤'}</div>
-            <div class="chat-item-info">
-                <div class="chat-item-name">${escapeHtml(friend.name)}</div>
-                <div class="chat-item-lastmsg">Нажмите для чата</div>
+    if (isMobile) {
+        renderChatsMobile(friends);
+    } else {
+        const container = document.getElementById('chatsList');
+        if (!friends.length) {
+            container.innerHTML = '<div class="empty-state">Нет чатов<br><br>👉 Добавьте друзей чтобы начать общение</div>';
+            return;
+        }
+        
+        container.innerHTML = friends.map(friend => `
+            <div class="chat-item" data-id="${friend.uniqueId}" data-name="${escapeHtml(friend.name)}">
+                <div class="chat-item-avatar">${friend.avatar ? `<img src="${friend.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤'}</div>
+                <div class="chat-item-info">
+                    <div class="chat-item-name">${escapeHtml(friend.name)}</div>
+                    <div class="chat-item-lastmsg">Нажмите для чата</div>
+                </div>
             </div>
-        </div>
-    `).join('');
-    
-    document.querySelectorAll('.chat-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const friendId = item.dataset.id;
-            const friendName = item.dataset.name;
-            openChat(friendId, friendName);
+        `).join('');
+        
+        document.querySelectorAll('.chat-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const friendId = item.dataset.id;
+                const friendName = item.dataset.name;
+                openChat(friendId, friendName);
+            });
         });
-    });
+    }
 }
 
 async function removeFriend(friendId) {
@@ -950,6 +953,146 @@ async function init() {
     updateUserUI();
     console.log('Готово!');
 }
+// ========== МОБИЛЬНАЯ НАВИГАЦИЯ ==========
 
-// Запуск
+let isMobile = window.innerWidth <= 768;
+
+function checkMobile() {
+    isMobile = window.innerWidth <= 768;
+    return isMobile;
+}
+
+// Открыть чат на мобильном (полноэкранный режим)
+function openChatMobile(friendId, friendName) {
+    if (!isMobile) {
+        // Если десктоп - обычное поведение
+        openChat(friendId, friendName);
+        return;
+    }
+    
+    // Мобильное поведение
+    if (messageUnsubscribe) {
+        messageUnsubscribe();
+    }
+    
+    currentChat = { id: friendId, name: friendName };
+    
+    // Скрываем список чатов, показываем область чата
+    const chatsSidebar = document.querySelector('.chats-sidebar');
+    const chatArea = document.querySelector('.chat-area');
+    
+    if (chatsSidebar) chatsSidebar.style.display = 'none';
+    if (chatArea) {
+        chatArea.classList.add('active');
+        chatArea.style.display = 'flex';
+    }
+    
+    // Добавляем кнопку назад в шапку чата, если её нет
+    const chatHeader = document.querySelector('.chat-area-header');
+    if (chatHeader && !chatHeader.querySelector('.back-button')) {
+        const backBtn = document.createElement('button');
+        backBtn.className = 'back-button';
+        backBtn.innerHTML = '← Назад';
+        backBtn.onclick = closeChatMobile;
+        chatHeader.insertBefore(backBtn, chatHeader.firstChild);
+    }
+    
+    document.getElementById('chatContactName').textContent = friendName;
+    document.getElementById('chatAreaHeader').style.display = 'flex';
+    document.getElementById('chatInputArea').style.display = 'flex';
+    document.getElementById('deleteChatBtn').style.display = 'block';
+    
+    const chatId = [currentUser.uniqueId, friendId].sort().join('___');
+    const messagesRef = firebaseRef(db, 'messages/' + chatId);
+    
+    messageUnsubscribe = firebaseOnValue(messagesRef, (snapshot) => {
+        const messages = snapshot.val();
+        renderMessages(messages ? Object.values(messages).sort((a,b) => a.id - b.id) : []);
+    });
+}
+
+// Закрыть чат на мобильном (вернуться к списку чатов)
+function closeChatMobile() {
+    const chatsSidebar = document.querySelector('.chats-sidebar');
+    const chatArea = document.querySelector('.chat-area');
+    
+    if (chatsSidebar) chatsSidebar.style.display = 'flex';
+    if (chatArea) {
+        chatArea.classList.remove('active');
+        chatArea.style.display = 'none';
+    }
+    
+    // Отписываемся от сообщений
+    if (messageUnsubscribe) {
+        messageUnsubscribe();
+        messageUnsubscribe = null;
+    }
+    
+    currentChat = null;
+}
+
+// Переопределяем openChat для мобильных
+function handleChatClick(friendId, friendName) {
+    if (isMobile) {
+        openChatMobile(friendId, friendName);
+    } else {
+        openChat(friendId, friendName);
+    }
+}
+
+// Обновляем рендер чатов для мобильных
+function renderChatsMobile(friends) {
+    const container = document.getElementById('chatsList');
+    if (!friends.length) {
+        container.innerHTML = '<div class="empty-state">Нет чатов<br><br>👉 Добавьте друзей чтобы начать общение</div>';
+        return;
+    }
+    
+    container.innerHTML = friends.map(friend => `
+        <div class="chat-item" data-id="${friend.uniqueId}" data-name="${escapeHtml(friend.name)}">
+            <div class="chat-item-avatar">${friend.avatar ? `<img src="${friend.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤'}</div>
+            <div class="chat-item-info">
+                <div class="chat-item-name">${escapeHtml(friend.name)}</div>
+                <div class="chat-item-lastmsg">Нажмите для чата</div>
+            </div>
+        </div>
+    `).join('');
+    
+    document.querySelectorAll('.chat-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const friendId = item.dataset.id;
+            const friendName = item.dataset.name;
+            handleChatClick(friendId, friendName);
+        });
+    });
+}
+
+// Следим за изменением размера окна (поворот телефона)
+window.addEventListener('resize', () => {
+    isMobile = window.innerWidth <= 768;
+    if (!isMobile) {
+        // Если перешли на десктопный вид - закрываем мобильный чат
+        closeChatMobile();
+        const chatsSidebar = document.querySelector('.chats-sidebar');
+        if (chatsSidebar) chatsSidebar.style.display = 'flex';
+    }
+});
+
+// ========== ИНИЦИАЛИЗАЦИЯ ==========
+
+async function init() {
+    console.log('Инициализация...');
+    await waitForFirebase();
+    await loadCurrentUser();
+    setupNavigation();
+    setupEventListeners();
+    await loadFriends();
+    await loadChats();
+    await loadFeed();
+    updateUserUI();
+    checkMobile(); // Проверяем тип устройства
+    console.log('Готово!');
+}
+
+// ЗАПУСК
 init();

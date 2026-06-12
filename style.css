@@ -1751,10 +1751,9 @@ body {
 #postContent::placeholder {
     color: rgba(255, 255, 255, 0.4);
 }
-
 /* ===== АДАПТАЦИЯ ДЛЯ ТЕЛЕФОНОВ ===== */
 @media (max-width: 768px) {
-    /* Боковое меню */
+    /* Скрываем десктопное меню */
     .sidebar {
         position: fixed;
         bottom: 0;
@@ -1762,13 +1761,13 @@ body {
         left: 0;
         right: 0;
         width: 100%;
-        height: auto;
+        height: 60px;
         background: rgba(10, 10, 10, 0.95);
         backdrop-filter: blur(20px);
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         border-right: none;
         z-index: 100;
-        padding: 8px 0;
+        padding: 0;
     }
     
     .sidebar-header {
@@ -1778,8 +1777,10 @@ body {
     .sidebar-nav {
         display: flex;
         justify-content: space-around;
-        padding: 5px 10px;
+        padding: 0;
         margin: 0;
+        height: 100%;
+        align-items: center;
     }
     
     .nav-item {
@@ -1788,10 +1789,12 @@ body {
         gap: 4px;
         margin: 0;
         border-radius: 12px;
+        flex: 1;
+        text-align: center;
     }
     
     .nav-icon {
-        font-size: 24px;
+        font-size: 22px;
     }
     
     .nav-text {
@@ -1805,11 +1808,21 @@ body {
     /* Основной контент */
     .main-content {
         margin-left: 0;
-        margin-bottom: 70px;
+        margin-bottom: 60px;
         padding: 10px;
     }
     
-    /* Чаты */
+    /* Страницы - анимация переходов */
+    .page {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .page.active {
+        display: block;
+    }
+    
+    /* === ЧАТЫ === */
     .chats-container {
         flex-direction: column;
         height: auto;
@@ -1818,31 +1831,77 @@ body {
     
     .chats-sidebar {
         width: 100%;
-        max-height: 200px;
+        max-height: none;
         border-right: none;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     
+    /* Список чатов */
+    .chat-item {
+        padding: 15px;
+    }
+    
+    /* Область чата */
     .chat-area {
-        min-height: 400px;
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 60px;
+        background: #0a0a0a;
+        z-index: 200;
+        flex-direction: column;
+        border-radius: 0;
+    }
+    
+    .chat-area.active {
+        display: flex;
     }
     
     .chat-area-header {
-        padding: 10px 15px;
+        position: sticky;
+        top: 0;
+        background: #0a0a0a;
+        padding: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .chat-messages-area {
+        flex: 1;
         padding: 15px;
-        height: 300px;
-        max-height: 300px;
-    }
-    
-    .message {
-        max-width: 85%;
+        overflow-y: auto;
     }
     
     .chat-input-area {
         padding: 10px;
+        background: #0a0a0a;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Кнопка назад в чате */
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+    
+    .chat-contact-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Сообщения */
+    .message {
+        max-width: 85%;
     }
     
     /* Друзья */
@@ -1879,40 +1938,10 @@ body {
         width: 100%;
     }
     
-    .post-card {
-        padding: 15px;
-    }
-    
-    .post-header {
-        gap: 10px;
-    }
-    
-    .post-avatar {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-    }
-    
-    .post-author {
-        font-size: 14px;
-    }
-    
-    .post-content {
-        font-size: 14px;
-    }
-    
     /* Игры */
-    .games-container {
-        padding: 15px;
-    }
-    
     .games-grid {
         grid-template-columns: 1fr;
         gap: 15px;
-    }
-    
-    .game-card {
-        padding: 20px;
     }
     
     /* Модальные окна */
@@ -1923,98 +1952,34 @@ body {
         border-radius: 16px;
     }
     
-    .profile-modal-content {
-        width: 95%;
-    }
-    
-    .profile-avatar-large {
-        width: 70px;
-        height: 70px;
-        font-size: 35px;
-    }
-    
-    .profile-avatar-wrapper {
-        margin-left: 15px;
-        margin-top: -40px;
-    }
-    
-    .profile-info-container {
-        padding: 0 15px 15px;
-    }
-    
     /* Уведомления */
     .toast {
         bottom: 80px;
         font-size: 12px;
         padding: 10px 16px;
     }
-    
-    /* Статистика */
-    .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-    
-    .quick-actions {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-    
-    /* Шапка */
-    .desktop-header {
-        flex-direction: column;
-        gap: 10px;
-        padding: 10px;
-        margin-bottom: 15px;
-    }
-    
-    .user-panel {
-        width: 100%;
-        justify-content: space-between;
-    }
-    
-    .user-info {
-        flex: 1;
-    }
-    
-    .user-avatar {
-        width: 35px;
-        height: 35px;
-    }
 }
 
-/* Для очень маленьких экранов */
-@media (max-width: 480px) {
-    .nav-item {
-        padding: 6px 8px;
-    }
-    
-    .nav-icon {
-        font-size: 20px;
-    }
-    
-    .nav-text {
-        font-size: 9px;
-    }
-    
-    .chat-contact-avatar {
-        width: 35px;
-        height: 35px;
-        font-size: 18px;
-    }
-    
-    .chat-contact-info h3 {
-        font-size: 14px;
-    }
-    
-    .message-avatar {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
-    }
-    
-    .message-content {
-        font-size: 12px;
-        padding: 8px 12px;
-    }
+/* Кнопка назад (добавляется динамически) */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.back-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
