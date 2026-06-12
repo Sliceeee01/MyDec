@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест кнопок</title>
+    <style>
+        body { background: #000; color: #fff; padding: 20px; font-family: Arial; }
+        button { padding: 10px 20px; margin: 10px; cursor: pointer; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content { background: #222; padding: 20px; border-radius: 10px; }
+        .close-modal { float: right; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Тест кнопок и модального окна</h1>
+    <button id="testBtn">Открыть модалку</button>
+
+    <div id="testModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal">✕</button>
+            <h2>Модальное окно работает!</h2>
+            <p>Если ты это видишь — значит кнопки и JS работают правильно.</p>
+        </div>
+    </div>
+
+    <script>
+        console.log('Скрипт загружен');
+        
+        const btn = document.getElementById('testBtn');
+        const modal = document.getElementById('testModal');
+        const closeBtn = document.querySelector('.close-modal');
+        
+        if (btn) {
+            btn.onclick = function() {
+                console.log('Кнопка нажата');
+                modal.classList.add('show');
+            };
+        } else {
+            console.log('Кнопка не найдена');
+        }
+        
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                modal.classList.remove('show');
+            };
+        }
+        
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                modal.classList.remove('show');
+            }
+        };
+    </script>
+</body>
+</html>

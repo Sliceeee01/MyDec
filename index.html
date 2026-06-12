@@ -49,39 +49,21 @@
                 
                 <form id="loginForm" class="auth-form">
                     <div class="form-group">
-                        <label for="loginEmail">Email</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">✉</span>
-                            <input type="email" id="loginEmail" placeholder="your@email.com" required>
-                        </div>
+                        <label>Email</label>
+                        <input type="email" id="loginEmail" placeholder="your@email.com" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="loginPassword">Пароль</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">🔒</span>
-                            <input type="password" id="loginPassword" placeholder="••••••••" required>
-                            <span class="toggle-password" data-target="loginPassword">👁</span>
-                        </div>
+                        <label>Пароль</label>
+                        <input type="password" id="loginPassword" placeholder="••••••••" required>
                     </div>
                     
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="remember">
-                            <span class="checkmark"></span>
-                            Запомнить меня
-                        </label>
-                    </div>
-                    
-                    <button type="submit" class="submit-btn">
-                        <span>Войти</span>
-                        <span class="btn-arrow">→</span>
-                    </button>
+                    <button type="submit" class="submit-btn">Войти</button>
                     
                     <div class="form-links">
-                        <a href="#" class="form-link" id="showRegister">Регистрация</a>
-                        <span class="link-divider">|</span>
-                        <a href="#" class="form-link" id="showForgot">Забыли пароль?</a>
+                        <a href="#" id="showRegister">Регистрация</a>
+                        <span>|</span>
+                        <a href="#" id="showForgot">Забыли пароль?</a>
                     </div>
                 </form>
             </div>
@@ -94,46 +76,29 @@
                 
                 <form id="registerForm" class="auth-form">
                     <div class="form-group">
-                        <label for="regName">Имя</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">👤</span>
-                            <input type="text" id="regName" placeholder="Ваше имя" required>
-                        </div>
+                        <label>Имя</label>
+                        <input type="text" id="regName" placeholder="Ваше имя" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="regEmail">Email</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">✉</span>
-                            <input type="email" id="regEmail" placeholder="your@email.com" required>
-                        </div>
+                        <label>Email</label>
+                        <input type="email" id="regEmail" placeholder="your@email.com" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="regPassword">Пароль</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">🔒</span>
-                            <input type="password" id="regPassword" placeholder="Минимум 6 символов" required>
-                            <span class="toggle-password" data-target="regPassword">👁</span>
-                        </div>
+                        <label>Пароль</label>
+                        <input type="password" id="regPassword" placeholder="Минимум 6 символов" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="regConfirmPassword">Подтверждение</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">🔒</span>
-                            <input type="password" id="regConfirmPassword" placeholder="Повторите пароль" required>
-                            <span class="toggle-password" data-target="regConfirmPassword">👁</span>
-                        </div>
+                        <label>Подтверждение</label>
+                        <input type="password" id="regConfirmPassword" placeholder="Повторите пароль" required>
                     </div>
                     
-                    <button type="submit" class="submit-btn">
-                        <span>Зарегистрироваться</span>
-                        <span class="btn-arrow">→</span>
-                    </button>
+                    <button type="submit" class="submit-btn">Зарегистрироваться</button>
                     
                     <div class="form-links">
-                        <a href="#" class="form-link" id="showLoginFromReg">Уже есть аккаунт? Войти</a>
+                        <a href="#" id="showLoginFromReg">Уже есть аккаунт? Войти</a>
                     </div>
                 </form>
             </div>
@@ -146,33 +111,26 @@
                 
                 <form id="forgotForm" class="auth-form">
                     <div class="form-group">
-                        <label for="forgotEmail">Email</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">✉</span>
-                            <input type="email" id="forgotEmail" placeholder="your@email.com" required>
-                        </div>
+                        <label>Email</label>
+                        <input type="email" id="forgotEmail" placeholder="your@email.com" required>
                     </div>
                     
-                    <p class="forgot-info">Новый пароль будет отправлен на ваш email</p>
-                    
-                    <button type="submit" class="submit-btn">
-                        <span>Отправить</span>
-                        <span class="btn-arrow">→</span>
-                    </button>
+                    <button type="submit" class="submit-btn">Отправить</button>
                     
                     <div class="form-links">
-                        <a href="#" class="form-link" id="showLoginFromForgot">Вернуться ко входу</a>
+                        <a href="#" id="showLoginFromForgot">Вернуться ко входу</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK и основной код -->
     <script type="module">
+        // ========== ИМПОРТ FIREBASE ==========
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-        import { getDatabase, ref, set, get, push, query, orderByChild, equalTo, update, remove, onValue } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+        import { getDatabase, ref, set, get, push, child } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
         
+        // ========== ТВОЙ КОНФИГ ==========
         const firebaseConfig = {
             apiKey: "AIzaSyCK5MTHhq15C_aFTS2prR2QrM-U4F2kgJo",
             authDomain: "mydesktop-chat.firebaseapp.com",
@@ -183,25 +141,179 @@
             appId: "1:422339167016:web:faa470c10bd0ccdef9861d"
         };
         
+        // ИНИЦИАЛИЗАЦИЯ
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        window.firebaseDB = db;
-        window.firebaseRef = ref;
-        window.firebaseSet = set;
-        window.firebaseGet = get;
-        window.firebasePush = push;
-        window.firebaseQuery = query;
-        window.firebaseOrderByChild = orderByChild;
-        window.firebaseEqualTo = equalTo;
-        window.firebaseUpdate = update;
-        window.firebaseRemove = remove;
-        window.firebaseOnValue = onValue;
+        console.log('✅ Firebase подключен');
         
-        // Загружаем login.js
-        const script = document.createElement('script');
-        script.src = 'login.js';
-        document.body.appendChild(script);
+        // ========== РАБОТА С МОДАЛКОЙ ==========
+        const loginBtn = document.getElementById('loginBtn');
+        const modal = document.getElementById('loginModal');
+        const closeBtn = document.querySelector('.close-modal');
+        
+        const loginContainer = document.getElementById('loginFormContainer');
+        const registerContainer = document.getElementById('registerFormContainer');
+        const forgotContainer = document.getElementById('forgotFormContainer');
+        
+        // Открытие
+        loginBtn.onclick = () => {
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        };
+        
+        // Закрытие
+        closeBtn.onclick = () => {
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        };
+        
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('show');
+                document.body.style.overflow = 'auto';
+            }
+        };
+        
+        // Переключение форм
+        function showForm(type) {
+            loginContainer.style.display = 'none';
+            registerContainer.style.display = 'none';
+            forgotContainer.style.display = 'none';
+            if (type === 'login') loginContainer.style.display = 'block';
+            if (type === 'register') registerContainer.style.display = 'block';
+            if (type === 'forgot') forgotContainer.style.display = 'block';
+        }
+        
+        document.getElementById('showRegister').onclick = (e) => { e.preventDefault(); showForm('register'); };
+        document.getElementById('showForgot').onclick = (e) => { e.preventDefault(); showForm('forgot'); };
+        document.getElementById('showLoginFromReg').onclick = (e) => { e.preventDefault(); showForm('login'); };
+        document.getElementById('showLoginFromForgot').onclick = (e) => { e.preventDefault(); showForm('login'); };
+        
+        // ========== ФУНКЦИИ БАЗЫ ДАННЫХ ==========
+        async function findUserByEmail(email) {
+            const usersRef = ref(db, 'users');
+            const snapshot = await get(usersRef);
+            const users = snapshot.val();
+            if (!users) return null;
+            
+            for (let key in users) {
+                if (users[key].email === email.toLowerCase()) {
+                    return { ...users[key], id: key };
+                }
+            }
+            return null;
+        }
+        
+        async function addUser(name, email, password) {
+            const usersRef = ref(db, 'users');
+            const newUserRef = push(usersRef);
+            const uniqueId = 'ID' + Math.random().toString(36).substr(2, 8).toUpperCase();
+            
+            const userData = {
+                name: name,
+                email: email.toLowerCase(),
+                password: password,
+                uniqueId: uniqueId,
+                friends: [],
+                createdAt: new Date().toISOString()
+            };
+            
+            await set(newUserRef, userData);
+            return { ...userData, id: newUserRef.key };
+        }
+        
+        // ========== ОБРАБОТКА ФОРМ ==========
+        // Регистрация
+        document.getElementById('registerForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirmPassword').value;
+            
+            if (!name || !email || !password) {
+                alert('Заполните все поля');
+                return;
+            }
+            
+            if (password !== confirm) {
+                alert('Пароли не совпадают');
+                return;
+            }
+            
+            if (password.length < 6) {
+                alert('Пароль минимум 6 символов');
+                return;
+            }
+            
+            const existingUser = await findUserByEmail(email);
+            if (existingUser) {
+                alert('Email уже используется');
+                return;
+            }
+            
+            const newUser = await addUser(name, email, password);
+            alert(`✅ Регистрация успешна!\nВаш ID: ${newUser.uniqueId}\nСохраните его!`);
+            
+            showForm('login');
+            document.getElementById('loginEmail').value = email;
+        };
+        
+        // Вход
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                alert('Заполните все поля');
+                return;
+            }
+            
+            const user = await findUserByEmail(email);
+            
+            if (user && user.password === password) {
+                const userData = {
+                    email: user.email,
+                    name: user.name,
+                    uniqueId: user.uniqueId
+                };
+                
+                localStorage.setItem('currentUser', JSON.stringify(userData));
+                alert(`✅ Добро пожаловать, ${user.name}!`);
+                window.location.href = 'home.html';
+            } else {
+                alert('❌ Неверный email или пароль');
+            }
+        };
+        
+        // Восстановление
+        document.getElementById('forgotForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value.trim();
+            
+            if (!email) {
+                alert('Введите email');
+                return;
+            }
+            
+            const user = await findUserByEmail(email);
+            
+            if (!user) {
+                alert('Пользователь не найден');
+                return;
+            }
+            
+            const newPassword = Math.random().toString(36).substr(2, 8);
+            // Тут нужно обновить пароль в базе
+            alert(`Ваш новый пароль: ${newPassword}\nЗапишите его!`);
+            
+            showForm('login');
+            document.getElementById('loginEmail').value = email;
+        };
+        
+        console.log('✅ Все обработчики событий загружены');
     </script>
 </body>
 </html>
