@@ -173,17 +173,20 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getDatabase, ref, set, get, push, query, orderByChild, equalTo, update, remove, onValue } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
         
-        // ========== ВСТАВЬ СВОЙ КОНФИГ СЮДА ==========
+
+
         const firebaseConfig = {
-            apiKey: "AIzaSyCK5MTlhq15C_aFTS2prR2QrM-U4F2kgJo",
-            authDomain: "mydesktop-chat.firebaseapp.com",
-            databaseURL: "https://mydesktop-chat-default-rtdb.firebaseio.com",
-            projectId: "mydesktop-chat",
-            storageBucket: "mydesktop-chat.firebasestorage.app",
-            messagingSenderId: "422339167016",
-            appId: "1:422339167016:web:faa470c1bdb0ccdef9861d"
-        };
+    apiKey: "AIzaSyCK5MTHhq15C_aFTS2prR2QrM-U4F2kgJo",
+    authDomain: "mydesktop-chat.firebaseapp.com",
+    databaseURL: "https://mydesktop-chat-default-rtdb.firebaseio.com",
+    projectId: "mydesktop-chat",
+    storageBucket: "mydesktop-chat.firebasestorage.app",
+    messagingSenderId: "422339167016",
+    appId: "1:422339167016:web:faa470c10bd0ccdef9861d"
+};
    
+
+
         
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
