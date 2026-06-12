@@ -151,6 +151,7 @@ function updateUserUI() {
     const profileIdEl = document.getElementById('profileIdInput');
     const profileBioEl = document.getElementById('profileBioInput');
     const lastIdChangeEl = document.getElementById('lastIdChange');
+    const idChangeWarningEl = document.querySelector('.id-change-warning');
     
     if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email;
     if (userIdEl) userIdEl.textContent = currentUser.uniqueId || 'ID...';
@@ -159,20 +160,62 @@ function updateUserUI() {
     if (profileIdEl) profileIdEl.value = currentUser.uniqueId || '';
     if (profileBioEl) profileBioEl.value = currentUser.bio || '';
     
-    if (lastIdChangeEl && currentUser.lastIdChange) {
-        lastIdChangeEl.textContent = `ID был изменен: ${formatTimeAgo(currentUser.lastIdChange)}`;
+    // Логика отображения информации об изменении ID
+    const hasChangedId = currentUser.lastIdChange && currentUser.lastIdChange > 0;
+    
+    if (hasChangedId) {
+        const daysSinceLastChange = (Date.now() - currentUser.lastIdChange) / (1000 * 60 * 60 * 24);
+        const canChangeAgain = daysSinceLastChange >= 7;
+        
+        if (canChangeAgain) {
+            // Можно менять ID снова
+            if (lastIdChangeEl) {
+                lastIdChangeEl.textContent = '✅ Вы можете изменить ID';
+                lastIdChangeEl.style.color = '#00ff88';
+            }
+            if (idChangeWarningEl) idChangeWarningEl.style.display = 'block';
+        } else {
+            // Нельзя менять ID, показываем таймер
+            const daysLeft = Math.ceil(7 - daysSinceLastChange);
+            const hoursLeft = Math.ceil((7 - daysSinceLastChange) * 24);
+            let timeText = '';
+            if (daysLeft > 0) {
+                timeText = `${daysLeft} дн`;
+            } else {
+                timeText = `${hoursLeft} ч`;
+            }
+            if (lastIdChangeEl) {
+                lastIdChangeEl.textContent = `⚠️ ID был изменен ${formatTimeAgo(currentUser.lastIdChange)}. Следующая смена через ${timeText}`;
+                lastIdChangeEl.style.color = '#ffaa00';
+            }
+            if (idChangeWarningEl) idChangeWarningEl.style.display = 'block';
+        }
+    } else {
+        // ID никогда не менялся
+        if (lastIdChangeEl) {
+            lastIdChangeEl.textContent = '✨ ID не менялся';
+            lastIdChangeEl.style.color = 'rgba(255,255,255,0.5)';
+        }
+        if (idChangeWarningEl) idChangeWarningEl.style.display = 'block';
     }
     
+    // Аватар в сайдбаре
     const sidebarAvatar = document.getElementById('sidebarAvatar');
     if (sidebarAvatar && currentUser.avatar) {
         sidebarAvatar.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+    } else if (sidebarAvatar) {
+        sidebarAvatar.innerHTML = '👤';
     }
     
+    // Аватар в профиле
     const profileAvatar = document.getElementById('profileAvatarLarge');
     if (profileAvatar && currentUser.avatar) {
         profileAvatar.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+    } else if (profileAvatar) {
+        profileAvatar.innerHTML = '👤';
     }
     
+    // Обложка профиля
     const profileCover = document.getElementById('profileCover');
     if (profileCover && currentUser.cover) {
         profileCover.style.backgroundImage = `url(${currentUser.cover})`;
@@ -180,7 +223,6 @@ function updateUserUI() {
         profileCover.style.backgroundPosition = 'center';
     }
 }
-
 async function changeUserId() {
     const newId = document.getElementById('profileIdInput').value.trim().toUpperCase();
     if (!newId) {
@@ -194,16 +236,19 @@ async function changeUserId() {
     }
     
     if (!/^ID[A-Z0-9]{8}$/.test(newId)) {
-        showToast('ID должен быть формата IDXXXXXXXX (8 символов)', true);
+        showToast('ID должен быть формата IDXXXXXXXX (8 символов, буквы и цифры)', true);
         return;
     }
     
     // Проверка на 7 дней
-    const daysSinceLastChange = (Date.now() - (currentUser.lastIdChange || 0)) / (1000 * 60 * 60 * 24);
-    if (daysSinceLastChange < 7 && currentUser.lastIdChange) {
-        const daysLeft = Math.ceil(7 - daysSinceLastChange);
-        showToast(`ID можно изменить через ${daysLeft} дней`, true);
-        return;
+    const hasChangedBefore = currentUser.lastIdChange && currentUser.lastIdChange > 0;
+    if (hasChangedBefore) {
+        const daysSinceLastChange = (Date.now() - currentUser.lastIdChange) / (1000 * 60 * 60 * 24);
+        if (daysSinceLastChange < 7) {
+            const daysLeft = Math.ceil(7 - daysSinceLastChange);
+            showToast(`ID можно изменить через ${daysLeft} дней`, true);
+            return;
+        }
     }
     
     // Проверка уникальности
@@ -219,14 +264,16 @@ async function changeUserId() {
     }
     
     // Обновляем ID
+    const oldId = currentUser.uniqueId;
+    const now = Date.now();
+    
     await firebaseUpdate(firebaseRef(db, 'users/' + currentUser.id), {
         uniqueId: newId,
-        lastIdChange: Date.now()
+        lastIdChange: now
     });
     
-    const oldId = currentUser.uniqueId;
     currentUser.uniqueId = newId;
-    currentUser.lastIdChange = Date.now();
+    currentUser.lastIdChange = now;
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
     
     // Обновляем ID в друзьях у всех пользователей
@@ -237,8 +284,35 @@ async function changeUserId() {
         }
     }
     
+    // Обновляем ID в сообщениях
+    const messagesRef = firebaseRef(db, 'messages');
+    const messagesSnapshot = await firebaseGet(messagesRef);
+    const messages = messagesSnapshot.val();
+    if (messages) {
+        for (let chatId in messages) {
+            let needUpdate = false;
+            const updatedMessages = {};
+            for (let msgKey in messages[chatId]) {
+                const msg = messages[chatId][msgKey];
+                if (msg.from === oldId) {
+                    msg.from = newId;
+                    needUpdate = true;
+                }
+                if (msg.to === oldId) {
+                    msg.to = newId;
+                    needUpdate = true;
+                }
+                updatedMessages[msgKey] = msg;
+            }
+            if (needUpdate) {
+                await firebaseSet(firebaseRef(db, 'messages/' + chatId), updatedMessages);
+            }
+        }
+    }
+    
     showToast(`✅ ID изменен на ${newId}`);
     updateUserUI();
+    document.getElementById('profileModal').classList.remove('show');
 }
 
 async function saveProfile() {
