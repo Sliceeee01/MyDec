@@ -420,7 +420,6 @@ async function deleteChat() {
 }
 
 // ========== ПРОФИЛЬ ==========
-
 async function loadCurrentUser() {
     const saved = localStorage.getItem('currentUser');
     if (!saved) {
@@ -429,14 +428,59 @@ async function loadCurrentUser() {
     }
     currentUser = JSON.parse(saved);
     console.log('Пользователь:', currentUser.name);
+    
+    // Загружаем актуальные данные из Firebase
+    const usersRef = firebaseRef(db, 'users');
+    const snapshot = await firebaseGet(usersRef);
+    const users = snapshot.val();
+    
+    for (let key in users) {
+        if (users[key].email === currentUser.email) {
+            currentUser.id = key;
+            currentUser.friends = users[key].friends || [];
+            currentUser.avatar = users[key].avatar;
+            currentUser.bio = users[key].bio || '';
+            currentUser.cover = users[key].cover;
+            break;
+        }
+    }
 }
 
+
 function updateUserUI() {
-    document.getElementById('sidebarUserName').textContent = currentUser.name || currentUser.email;
-    document.getElementById('sidebarUserUniqueId').textContent = currentUser.uniqueId;
-    document.getElementById('profileNameInput').value = currentUser.name || '';
-    document.getElementById('profileEmailInput').value = currentUser.email;
-    document.getElementById('profileIdInput').value = currentUser.uniqueId;
+    const userNameEl = document.getElementById('sidebarUserName');
+    const userIdEl = document.getElementById('sidebarUserUniqueId');
+    const profileNameEl = document.getElementById('profileNameInput');
+    const profileEmailEl = document.getElementById('profileEmailInput');
+    const profileIdEl = document.getElementById('profileIdInput');
+    const profileBioEl = document.getElementById('profileBioInput');
+    
+    if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email;
+    if (userIdEl) userIdEl.textContent = currentUser.uniqueId || 'ID...';
+    if (profileNameEl) profileNameEl.value = currentUser.name || '';
+    if (profileEmailEl) profileEmailEl.value = currentUser.email || '';
+    if (profileIdEl) profileIdEl.value = currentUser.uniqueId || '';
+    if (profileBioEl) profileBioEl.value = currentUser.bio || '';
+    
+    // Аватар в сайдбаре
+    const sidebarAvatar = document.getElementById('sidebarAvatar');
+    if (sidebarAvatar && currentUser.avatar) {
+        sidebarAvatar.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+    }
+    
+    // Аватар в профиле
+    const profileAvatar = document.getElementById('profileAvatarLarge');
+    if (profileAvatar && currentUser.avatar) {
+        profileAvatar.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+    }
+    
+    // Обложка профиля
+    const profileCover = document.getElementById('profileCover');
+    if (profileCover && currentUser.cover) {
+        profileCover.style.backgroundImage = `url(${currentUser.cover})`;
+        profileCover.style.backgroundSize = 'cover';
+        profileCover.style.backgroundPosition = 'center';
+    }
 }
 
 async function saveProfile() {
@@ -746,7 +790,45 @@ function setupNavigation() {
         });
     });
 }
+// Поиск по друзьям
+function setupFriendSearch() {
+    const friendsSearch = document.getElementById('friendsSearch');
+    if (!friendsSearch) return;
+    
+    friendsSearch.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const friendCards = document.querySelectorAll('.friend-card');
+        
+        friendCards.forEach(card => {
+            const name = card.querySelector('.friend-name')?.textContent.toLowerCase() || '';
+            if (name.includes(query)) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+}
 
+// Поиск по чатам
+function setupChatSearch() {
+    const chatsSearch = document.getElementById('chatsSearch');
+    if (!chatsSearch) return;
+    
+    chatsSearch.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const chatItems = document.querySelectorAll('.chat-item');
+        
+        chatItems.forEach(item => {
+            const name = item.querySelector('.chat-item-name')?.textContent.toLowerCase() || '';
+            if (name.includes(query)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+}
 function setupEventListeners() {
     // Выход
     document.getElementById('logoutBtnSidebar').onclick = () => {
@@ -826,8 +908,32 @@ function setupEventListeners() {
         };
     });
     
-    // Предпросмотр медиа
+    // Предпросмотр медиа (ТОЛЬКО ОДИН РАЗ)
     setupMediaPreview();
+    
+    // ===== ПОИСК ПО ДРУЗЬЯМ =====
+    const friendsSearch = document.getElementById('friendsSearch');
+    if (friendsSearch) {
+        friendsSearch.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('.friend-card').forEach(card => {
+                const name = card.querySelector('.friend-name')?.textContent.toLowerCase() || '';
+                card.style.display = name.includes(query) ? 'flex' : 'none';
+            });
+        });
+    }
+    
+    // ===== ПОИСК ПО ЧАТАМ =====
+    const chatsSearch = document.getElementById('chatsSearch');
+    if (chatsSearch) {
+        chatsSearch.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('.chat-item').forEach(item => {
+                const name = item.querySelector('.chat-item-name')?.textContent.toLowerCase() || '';
+                item.style.display = name.includes(query) ? 'flex' : 'none';
+            });
+        });
+    }
 }
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
