@@ -37,29 +37,7 @@
                     <span class="nav-text">Развлечения</span>
                 </div>
             </nav>
-                   <!-- МОБИЛЬНОЕ НИЖНЕЕ МЕНЮ -->
-    <div class="mobile-bottom-nav" id="mobileBottomNav">
-        <button class="mobile-nav-item" data-page="chats">
-            <div class="mobile-nav-icon" style="background-image: url('images/chats.png');"></div>
-            <span class="mobile-nav-text">Чаты</span>
-        </button>
-        <button class="mobile-nav-item" data-page="friends">
-            <div class="mobile-nav-icon" style="background-image: url('images/friends.png');"></div>
-            <span class="mobile-nav-text">Друзья</span>
-        </button>
-        <button class="mobile-nav-item" data-page="feed">
-            <div class="mobile-nav-icon" style="background-image: url('images/feed.png');"></div>
-            <span class="mobile-nav-text">Лента</span>
-        </button>
-        <button class="mobile-nav-item" data-page="games">
-            <div class="mobile-nav-icon" style="background-image: url('images/games.png');"></div>
-            <span class="mobile-nav-text">Игры</span>
-        </button>
-        <button class="mobile-nav-item" data-page="profile">
-            <div class="mobile-nav-icon" style="background-image: url('images/profile.png');"></div>
-            <span class="mobile-nav-text">Профиль</span>
-        </button>
-    </div>
+            
             <div class="sidebar-footer">
                 <div class="user-mini" id="openProfileBtn">
                     <div class="user-mini-avatar" id="sidebarAvatar">👤</div>
@@ -71,6 +49,30 @@
                 <button id="logoutBtnSidebar" class="logout-sidebar-btn">🚪 Выход</button>
             </div>
         </aside>
+
+        <!-- МОБИЛЬНОЕ НИЖНЕЕ МЕНЮ (ТОЛЬКО ДЛЯ ТЕЛЕФОНОВ) -->
+        <div class="mobile-bottom-nav" id="mobileBottomNav">
+            <button class="mobile-nav-item" data-page="chats">
+                <div class="mobile-nav-icon">💬</div>
+                <span class="mobile-nav-text">Чаты</span>
+            </button>
+            <button class="mobile-nav-item" data-page="friends">
+                <div class="mobile-nav-icon">👥</div>
+                <span class="mobile-nav-text">Друзья</span>
+            </button>
+            <button class="mobile-nav-item" data-page="feed">
+                <div class="mobile-nav-icon">📱</div>
+                <span class="mobile-nav-text">Лента</span>
+            </button>
+            <button class="mobile-nav-item" data-page="games">
+                <div class="mobile-nav-icon">🎮</div>
+                <span class="mobile-nav-text">Игры</span>
+            </button>
+            <button class="mobile-nav-item" data-page="profile">
+                <div class="mobile-nav-icon">👤</div>
+                <span class="mobile-nav-text">Профиль</span>
+            </button>
+        </div>
 
         <!-- ОСНОВНОЙ КОНТЕНТ -->
         <main class="main-content">
@@ -195,16 +197,16 @@
         <div class="modal-content profile-modal-content">
             <button class="close-modal" id="closeProfileModal">✕</button>
             
-          <!-- Обложка профиля -->
-<div class="profile-cover" id="profileCover">
-    <button class="change-cover-btn" id="changeCoverBtn">✏️</button>
-</div>
+            <!-- Обложка профиля -->
+            <div class="profile-cover" id="profileCover">
+                <button class="change-cover-btn" id="changeCoverBtn">✏️</button>
+            </div>
 
-<!-- Аватар -->
-<div class="profile-avatar-wrapper">
-    <div class="profile-avatar-large" id="profileAvatarLarge">👤</div>
-    <button class="change-avatar-btn-large" id="changeAvatarBtn">✏️</button>
-</div>
+            <!-- Аватар -->
+            <div class="profile-avatar-wrapper">
+                <div class="profile-avatar-large" id="profileAvatarLarge">👤</div>
+                <button class="change-avatar-btn-large" id="changeAvatarBtn">✏️</button>
+            </div>
             
             <div class="profile-info-container">
                 <div class="profile-field">
@@ -223,14 +225,14 @@
                 </div>
                 
                 <div class="profile-field">
-    <label>Мой ID</label>
-    <div style="display: flex; gap: 10px;">
-        <input type="text" id="profileIdInput" style="flex:1">
-        <button id="changeIdBtn" class="submit-btn" style="width: auto; padding: 0 15px; margin:0;">✏️ Изменить</button>
-    </div>
-    <div class="last-id-change" id="lastIdChange" style="font-size: 12px; margin-top: 5px;"></div>
-    <div class="id-change-warning" style="font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 5px;">ℹ️ ID можно изменить раз в 7 дней</div>
-</div>
+                    <label>Мой ID</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="profileIdInput" style="flex:1">
+                        <button id="changeIdBtn" class="submit-btn" style="width: auto; padding: 0 15px; margin:0;">✏️ Изменить</button>
+                    </div>
+                    <div class="last-id-change" id="lastIdChange" style="font-size: 12px; margin-top: 5px;"></div>
+                    <div class="id-change-warning" style="font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 5px;">ℹ️ ID можно изменить раз в 7 дней</div>
+                </div>
                 
                 <button id="saveProfileChangesBtn" class="submit-btn">Сохранить изменения</button>
             </div>

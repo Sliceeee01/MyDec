@@ -43,1048 +43,16 @@ body {
     z-index: -1;
 }
 
-.particles::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-image: 
-        radial-gradient(circle at 10% 20%, rgba(255,255,255,0.03) 1px, transparent 1px),
-        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.02) 1px, transparent 1px);
-    background-size: 40px 40px, 30px 30px;
-}
-
 /* ============================================
-   MAIN SCREEN
+   MOBILE BOTTOM NAVIGATION (ТОЛЬКО ДЛЯ ТЕЛЕФОНОВ)
    ============================================ */
-.main-screen {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    position: relative;
-    z-index: 1;
-}
-
-/* ============================================
-   HEADER
-   ============================================ */
-.desktop-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 25px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    margin-bottom: 30px;
-}
-
-.desktop-title {
-    font-size: 24px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.title-icon {
-    font-size: 28px;
-    opacity: 0.9;
-    display: inline-block;
-    animation: spin 10s linear infinite;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.desktop-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    background: var(--success);
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
-}
-
-/* ============================================
-   LOGIN CENTER
-   ============================================ */
-.desktop-main {
-    min-height: 60vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 30px;
-}
-
-.login-center {
-    text-align: center;
-}
-
-.login-icon-wrapper {
-    position: relative;
-    margin-bottom: 40px;
-    display: inline-block;
-}
-
-.login-icon {
-    font-size: 80px;
-    opacity: 0.9;
-    display: inline-block;
-    animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-.login-ring {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 120px;
-    height: 120px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    animation: rotate 10s linear infinite;
-}
-
-@keyframes rotate {
-    from { transform: translate(-50%, -50%) rotate(0deg); }
-    to { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-.login-btn {
-    padding: 14px 40px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    border-radius: 40px;
-    color: var(--text-primary);
-    font-size: 18px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.3s ease;
-}
-
-.login-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: scale(1.05);
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
-.login-hint {
-    margin-top: 20px;
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-/* ============================================
-   MODAL WINDOWS
-   ============================================ */
-.modal {
+.mobile-bottom-nav {
     display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal.show {
-    display: flex;
-    animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.modal-content {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    max-width: 450px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-}
-
-.close-modal {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    color: var(--text-primary);
-    font-size: 18px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.close-modal:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: rotate(90deg);
-}
-
-.modal-header {
-    text-align: center;
-    padding: 30px 20px 20px;
-}
-
-.modal-icon {
-    font-size: 48px;
-    margin-bottom: 15px;
-    opacity: 0.9;
-}
-
-.modal-title {
-    font-size: 24px;
-    font-weight: 600;
 }
 
 /* ============================================
-   FORMS
+   DESKTOP SIDEBAR (ТОЛЬКО ДЛЯ ПК)
    ============================================ */
-.auth-form {
-    padding: 20px 30px 30px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-.form-group input {
-    width: 100%;
-    padding: 12px 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    color: var(--text-primary);
-    font-size: 14px;
-    transition: all 0.2s;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.submit-btn {
-    width: 100%;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    color: var(--text-primary);
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-top: 10px;
-}
-
-.submit-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
-}
-
-.form-links {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 13px;
-}
-
-.form-links a {
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: color 0.2s;
-    cursor: pointer;
-}
-
-.form-links a:hover {
-    color: var(--text-primary);
-}
-
-.form-links span {
-    margin: 0 10px;
-    color: var(--text-secondary);
-}
-
-.forgot-info {
-    font-size: 12px;
-    color: var(--text-secondary);
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-/* ============================================
-   HOME PAGE STYLES
-   ============================================ */
-.user-panel {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    padding: 5px 10px;
-    border-radius: 30px;
-    transition: background 0.2s;
-}
-
-.user-info:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.user-avatar {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    overflow: hidden;
-}
-
-.user-id-display {
-    font-size: 11px;
-    color: var(--text-secondary);
-}
-
-.logout-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    border-radius: 30px;
-    color: var(--text-primary);
-    cursor: pointer;
-    font-size: 13px;
-    transition: all 0.2s;
-}
-
-.logout-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 20px;
-    margin-bottom: 40px;
-}
-
-.stat-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 25px;
-    text-align: center;
-    transition: all 0.3s;
-    cursor: pointer;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(30, 30, 30, 0.9);
-}
-
-.stat-icon {
-    font-size: 36px;
-    margin-bottom: 12px;
-    opacity: 0.8;
-}
-
-.stat-value {
-    font-size: 32px;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-.stat-label {
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-.quick-actions {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-}
-
-.action-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 25px;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-align: center;
-}
-
-.action-card:hover {
-    transform: translateY(-5px);
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(30, 30, 30, 0.9);
-}
-
-.action-icon {
-    font-size: 40px;
-    margin-bottom: 15px;
-}
-
-.action-card h3 {
-    font-size: 18px;
-    margin-bottom: 8px;
-}
-
-.action-card p {
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-
-/* ============================================
-   MESSENGER STYLES
-   ============================================ */
-.messages-container {
-    display: flex;
-    width: 90vw;
-    max-width: 1200px;
-    height: 80vh;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    overflow: hidden;
-}
-
-.messages-sidebar {
-    width: 300px;
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-}
-
-.messages-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.messages-header h2 {
-    font-size: 20px;
-}
-
-.close-messages {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    color: var(--text-primary);
-    font-size: 18px;
-}
-
-.search-box {
-    padding: 15px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.search-box input {
-    width: 100%;
-    padding: 10px 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    color: var(--text-primary);
-    font-size: 14px;
-}
-
-.users-list {
-    flex: 1;
-    overflow-y: auto;
-}
-
-.user-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 15px;
-    cursor: pointer;
-    transition: background 0.2s;
-    border-bottom: 1px solid var(--border-color);
-    position: relative;
-}
-
-.user-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.user-item.active {
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.user-item-avatar {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    overflow: hidden;
-}
-
-.user-item-info {
-    flex: 1;
-}
-
-.user-item-name {
-    font-size: 15px;
-    font-weight: 500;
-}
-
-.user-item-email {
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-
-.user-item-badge {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    padding: 2px 8px;
-    font-size: 11px;
-}
-
-.remove-friend-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    width: 28px;
-    height: 28px;
-    cursor: pointer;
-    color: var(--text-primary);
-    font-size: 14px;
-}
-
-.messages-chat {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.chat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.chat-user-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.chat-avatar {
-    width: 45px;
-    height: 45px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-}
-
-.chat-user-info h3 {
-    font-size: 18px;
-}
-
-.chat-status {
-    font-size: 12px;
-    color: var(--success);
-}
-
-.delete-chat-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.message {
-    display: flex;
-    gap: 10px;
-    max-width: 70%;
-}
-
-.message.sent {
-    align-self: flex-end;
-    flex-direction: row-reverse;
-}
-
-.message.received {
-    align-self: flex-start;
-}
-
-.message-avatar {
-    width: 32px;
-    height: 32px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-}
-
-.message-content {
-    background: rgba(255, 255, 255, 0.08);
-    padding: 10px 15px;
-    border-radius: 15px;
-    font-size: 14px;
-}
-
-.message.sent .message-content {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.message-time {
-    font-size: 10px;
-    color: var(--text-secondary);
-    margin-top: 4px;
-}
-
-.chat-input-area {
-    display: flex;
-    gap: 12px;
-    padding: 20px;
-    border-top: 1px solid var(--border-color);
-}
-
-.chat-input-area input {
-    flex: 1;
-    padding: 12px 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    color: var(--text-primary);
-    font-size: 14px;
-}
-
-.chat-input-area button {
-    padding: 12px 24px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    color: var(--text-primary);
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.attach-btn {
-    padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 18px;
-}
-
-/* ============================================
-   SCROLLBAR
-   ============================================ */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 3px;
-}
-
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-@media (max-width: 768px) {
-    .main-screen {
-        padding: 10px;
-    }
-    
-    .messages-container {
-        flex-direction: column;
-        width: 95vw;
-        height: 85vh;
-    }
-    
-    .messages-sidebar {
-        width: 100%;
-        max-height: 40%;
-    }
-    
-    .message {
-        max-width: 85%;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .quick-actions {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .desktop-title {
-        font-size: 18px;
-    }
-    
-    .title-icon {
-        font-size: 22px;
-    }
-}
-/* ============================================
-   TOAST NOTIFICATIONS
-   ============================================ */
-.toast {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-size: 14px;
-    z-index: 10001;
-    animation: slideUp 0.3s ease;
-    backdrop-filter: blur(20px);
-    background: rgba(0, 0, 0, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
-    text-align: center;
-    min-width: 200px;
-    max-width: 80%;
-}
-
-.toast-success {
-    border-left: 3px solid #00ff88;
-}
-
-.toast-error {
-    border-left: 3px solid #ff4444;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
-}
-/* ============================================
-   ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
-   ============================================ */
-
-/* Контейнер модального окна профиля */
-.profile-modal-content {
-    max-width: 450px;
-    width: 90%;
-    background: #0a0a0a;
-    border-radius: 24px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-}
-
-/* Обложка профиля */
-.profile-cover {
-    height: 130px;
-    background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
-    position: relative;
-    background-size: cover;
-    background-position: center;
-}
-
-/* Кнопка смены обложки */
-.change-cover-btn {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    padding: 6px 12px;
-    cursor: pointer;
-    color: white;
-    font-size: 12px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.change-cover-btn:hover {
-    background: rgba(0, 0, 0, 0.9);
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
-/* Обертка аватара */
-.profile-avatar-wrapper {
-    position: relative;
-    margin-top: -55px;
-    margin-left: 25px;
-    margin-bottom: 20px;
-}
-
-/* Большой аватар в профиле */
-.profile-avatar-large {
-    width: 90px;
-    height: 90px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 45px;
-    border: 4px solid #0a0a0a;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.profile-avatar-large img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* Кнопка смены аватара */
-.change-avatar-btn-large {
-    position: absolute;
-    bottom: 5px;
-    right: -5px;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.change-avatar-btn-large:hover {
-    background: rgba(0, 0, 0, 0.9);
-    border-color: rgba(255, 255, 255, 0.4);
-    transform: scale(1.05);
-}
-
-/* Контейнер с информацией профиля */
-.profile-info-container {
-    padding: 0 25px 25px 25px;
-}
-
-/* Поля ввода профиля */
-.profile-field {
-    margin-bottom: 18px;
-}
-
-.profile-field label {
-    display: block;
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
-    margin-bottom: 6px;
-    letter-spacing: 0.3px;
-}
-
-.profile-field input,
-.profile-field textarea {
-    width: 100%;
-    padding: 12px 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    color: #ffffff;
-    font-size: 14px;
-    transition: all 0.2s;
-    font-family: inherit;
-}
-
-.profile-field input:focus,
-.profile-field textarea:focus {
-    outline: none;
-    border-color: rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.profile-field input:disabled,
-.profile-field textarea:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.profile-field textarea {
-    resize: vertical;
-    min-height: 70px;
-}
-
-/* Информация об изменении имени */
-.name-change-info {
-    font-size: 10px;
-    color: #ffaa00;
-    margin-top: 6px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.name-change-info::before {
-    content: "ⓘ";
-    font-size: 10px;
-}
-
-/* Последнее изменение имени */
-.last-name-change {
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.4);
-    margin-top: 4px;
-}
-
-/* Кнопка сохранения профиля */
-.profile-info-container .submit-btn {
-    margin-top: 15px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.profile-info-container .submit-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-    transform: translateY(-2px);
-}
-
-/* Адаптация для мобильных */
-@media (max-width: 480px) {
-    .profile-modal-content {
-        width: 95%;
-        border-radius: 20px;
-    }
-    
-    .profile-avatar-large {
-        width: 70px;
-        height: 70px;
-        font-size: 35px;
-    }
-    
-    .profile-avatar-wrapper {
-        margin-top: -45px;
-        margin-left: 20px;
-    }
-    
-    .profile-info-container {
-        padding: 0 20px 20px 20px;
-    }
-    
-    .profile-cover {
-        height: 100px;
-    }
-    
-    .change-avatar-btn-large {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
-    }
-}
-/* ============================================
-   НОВЫЙ ДИЗАЙН С БОКОВЫМ МЕНЮ
-   ============================================ */
-
-/* Контейнер приложения */
-.app-container {
-    display: flex;
-    min-height: 100vh;
-    max-width: 1400px;
-    margin: 0 auto;
-    background: #0a0a0a;
-}
-
-/* ===== БОКОВОЕ МЕНЮ ===== */
 .sidebar {
     width: 260px;
     background: rgba(10, 10, 10, 0.95);
@@ -1181,6 +149,7 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 20px;
+    overflow: hidden;
 }
 
 .user-mini-info {
@@ -1215,11 +184,21 @@ body {
     color: white;
 }
 
-/* ===== ОСНОВНОЙ КОНТЕНТ ===== */
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
 .main-content {
     flex: 1;
     margin-left: 260px;
     min-height: 100vh;
+}
+
+.app-container {
+    display: flex;
+    min-height: 100vh;
+    max-width: 1400px;
+    margin: 0 auto;
+    background: #0a0a0a;
 }
 
 .page {
@@ -1232,7 +211,16 @@ body {
     display: block;
 }
 
-/* ===== СТРАНИЦА ЧАТОВ ===== */
+/* ============================================
+   HEADER (ДЛЯ ТЕЛЕФОНОВ)
+   ============================================ */
+.mobile-header {
+    display: none;
+}
+
+/* ============================================
+   CHATS PAGE
+   ============================================ */
 .chats-container {
     display: flex;
     height: calc(100vh - 40px);
@@ -1259,15 +247,6 @@ body {
 
 .chats-header h2 {
     font-size: 18px;
-}
-
-.new-chat-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 8px 12px;
-    cursor: pointer;
-    font-size: 14px;
 }
 
 .chats-search {
@@ -1303,10 +282,6 @@ body {
     background: rgba(255, 255, 255, 0.05);
 }
 
-.chat-item.active {
-    background: rgba(255, 255, 255, 0.08);
-}
-
 .chat-item-avatar {
     width: 45px;
     height: 45px;
@@ -1316,6 +291,7 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 22px;
+    overflow: hidden;
 }
 
 .chat-item-info {
@@ -1325,11 +301,6 @@ body {
 .chat-item-name {
     font-size: 15px;
     font-weight: 500;
-}
-
-.chat-item-lastmsg {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.4);
 }
 
 .chat-area {
@@ -1361,6 +332,8 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 22px;
+    cursor: pointer;
+    overflow: hidden;
 }
 
 .chat-contact-status {
@@ -1377,6 +350,86 @@ body {
     gap: 12px;
 }
 
+.message {
+    display: flex;
+    gap: 10px;
+    max-width: 70%;
+}
+
+.message.sent {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.message.received {
+    align-self: flex-start;
+}
+
+.message-avatar {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    overflow: hidden;
+}
+
+.message-content {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 10px 15px;
+    border-radius: 15px;
+    font-size: 14px;
+}
+
+.message.sent .message-content {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.message-time {
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.chat-input-area {
+    display: flex;
+    gap: 12px;
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.chat-input-area input {
+    flex: 1;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: white;
+    font-size: 14px;
+}
+
+.chat-input-area button {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+}
+
+.delete-chat-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
 .empty-chat {
     text-align: center;
     padding: 60px 20px;
@@ -1389,32 +442,9 @@ body {
     opacity: 0.5;
 }
 
-.chat-input-area {
-    display: flex;
-    gap: 12px;
-    padding: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.chat-input-area input {
-    flex: 1;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    color: white;
-}
-
-.chat-input-area button {
-    padding: 12px 24px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    color: white;
-    cursor: pointer;
-}
-
-/* ===== СТРАНИЦА ДРУЗЕЙ ===== */
+/* ============================================
+   FRIENDS PAGE
+   ============================================ */
 .friends-container {
     background: rgba(20, 20, 20, 0.5);
     border-radius: 20px;
@@ -1427,6 +457,10 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+}
+
+.friends-header h2 {
+    font-size: 20px;
 }
 
 .add-friend-header-btn {
@@ -1452,7 +486,7 @@ body {
 
 .friends-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 15px;
 }
 
@@ -1460,16 +494,11 @@ body {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
-    padding: 20px;
+    padding: 15px;
     display: flex;
     align-items: center;
     gap: 15px;
     transition: all 0.2s;
-}
-
-.friend-card:hover {
-    background: rgba(255, 255, 255, 0.06);
-    transform: translateY(-2px);
 }
 
 .friend-avatar {
@@ -1481,10 +510,13 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 28px;
+    cursor: pointer;
+    overflow: hidden;
 }
 
 .friend-info {
     flex: 1;
+    cursor: pointer;
 }
 
 .friend-name {
@@ -1511,7 +543,9 @@ body {
     font-size: 14px;
 }
 
-/* ===== СТРАНИЦА ЛЕНТЫ ===== */
+/* ============================================
+   FEED PAGE
+   ============================================ */
 .feed-container {
     background: rgba(20, 20, 20, 0.5);
     border-radius: 20px;
@@ -1524,6 +558,10 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+}
+
+.feed-header h2 {
+    font-size: 20px;
 }
 
 .create-post-btn {
@@ -1552,6 +590,7 @@ body {
     align-items: center;
     gap: 12px;
     margin-bottom: 15px;
+    cursor: pointer;
 }
 
 .post-avatar {
@@ -1563,6 +602,7 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 22px;
+    overflow: hidden;
 }
 
 .post-author {
@@ -1579,17 +619,42 @@ body {
     line-height: 1.5;
 }
 
-.post-video {
+.post-media {
     margin-top: 10px;
 }
 
-.post-video iframe {
-    width: 100%;
-    max-width: 560px;
+.post-image {
+    max-width: 100%;
     border-radius: 12px;
+    cursor: pointer;
 }
 
-/* ===== СТРАНИЦА ИГР ===== */
+.post-actions {
+    display: flex;
+    gap: 20px;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.post-like-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
+.post-like-btn:hover {
+    background: rgba(255, 68, 68, 0.2);
+    color: #ff4444;
+}
+
+/* ============================================
+   GAMES PAGE
+   ============================================ */
 .games-container {
     background: rgba(20, 20, 20, 0.5);
     border-radius: 20px;
@@ -1597,11 +662,15 @@ body {
     padding: 20px;
 }
 
+.games-header h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
 .games-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
-    margin-top: 20px;
 }
 
 .game-card {
@@ -1634,356 +703,209 @@ body {
     color: rgba(255, 255, 255, 0.4);
 }
 
-/* ===== ИГРА ЗМЕЙКА ===== */
-.game-modal {
-    max-width: 500px;
-    text-align: center;
-}
-
-#snakeCanvas {
-    background: #1a1a1a;
-    border-radius: 12px;
-    margin: 20px 0;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: rgba(255, 255, 255, 0.3);
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 70px;
-    }
-    
-    .sidebar .logo-text,
-    .sidebar .nav-text,
-    .sidebar .user-mini-info {
-        display: none;
-    }
-    
-    .main-content {
-        margin-left: 70px;
-    }
-    
-    .nav-item {
-        justify-content: center;
-    }
-    
-    .user-mini {
-        justify-content: center;
-    }
-    
-    .chats-sidebar {
-        width: 250px;
-    }
-}
-/* Посты с медиа */
-.post-media {
-    margin-top: 10px;
-}
-
-.post-image {
-    max-width: 100%;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.post-image:hover {
-    transform: scale(1.02);
-}
-
-.post-actions {
-    display: flex;
-    gap: 20px;
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.post-like-btn, .post-comment-btn {
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.6);
-    cursor: pointer;
-    font-size: 14px;
-    padding: 5px 10px;
-    border-radius: 20px;
-    transition: all 0.2s;
-}
-
-.post-like-btn:hover {
-    background: rgba(255, 68, 68, 0.2);
-    color: #ff4444;
-}
-
-.post-comment-btn:hover {
-    background: rgba(0, 136, 255, 0.2);
-    color: #4488ff;
-}
-/* ===== СТИЛИ ДЛЯ СОЗДАНИЯ ПОСТА ===== */
-#postContent {
+/* ============================================
+   MODAL WINDOWS
+   ============================================ */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    color: white;
-    font-size: 14px;
-    font-family: inherit;
-    resize: vertical;
-}
-
-#postContent:focus {
-    outline: none;
-    border-color: rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.08);
-}
-
-#postContent::placeholder {
-    color: rgba(255, 255, 255, 0.4);
-}
-/* ===== АДАПТАЦИЯ ДЛЯ ТЕЛЕФОНОВ ===== */
-@media (max-width: 768px) {
-    /* Скрываем десктопное меню */
-    .sidebar {
-        position: fixed;
-        bottom: 0;
-        top: auto;
-        left: 0;
-        right: 0;
-        width: 100%;
-        height: 60px;
-        background: rgba(10, 10, 10, 0.95);
-        backdrop-filter: blur(20px);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        border-right: none;
-        z-index: 100;
-        padding: 0;
-    }
-    
-    .sidebar-header {
-        display: none;
-    }
-    
-    .sidebar-nav {
-        display: flex;
-        justify-content: space-around;
-        padding: 0;
-        margin: 0;
-        height: 100%;
-        align-items: center;
-    }
-    
-    .nav-item {
-        flex-direction: column;
-        padding: 8px 12px;
-        gap: 4px;
-        margin: 0;
-        border-radius: 12px;
-        flex: 1;
-        text-align: center;
-    }
-    
-    .nav-icon {
-        font-size: 22px;
-    }
-    
-    .nav-text {
-        font-size: 10px;
-    }
-    
-    .sidebar-footer {
-        display: none;
-    }
-    
-    /* Основной контент */
-    .main-content {
-        margin-left: 0;
-        margin-bottom: 60px;
-        padding: 10px;
-    }
-    
-    /* Страницы - анимация переходов */
-    .page {
-        display: none;
-        animation: fadeIn 0.3s ease;
-    }
-    
-    .page.active {
-        display: block;
-    }
-    
-    /* === ЧАТЫ === */
-    .chats-container {
-        flex-direction: column;
-        height: auto;
-        min-height: calc(100vh - 80px);
-    }
-    
-    .chats-sidebar {
-        width: 100%;
-        max-height: none;
-        border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    /* Список чатов */
-    .chat-item {
-        padding: 15px;
-    }
-    
-    /* Область чата */
-    .chat-area {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 60px;
-        background: #0a0a0a;
-        z-index: 200;
-        flex-direction: column;
-        border-radius: 0;
-    }
-    
-    .chat-area.active {
-        display: flex;
-    }
-    
-    .chat-area-header {
-        position: sticky;
-        top: 0;
-        background: #0a0a0a;
-        padding: 15px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .chat-messages-area {
-        flex: 1;
-        padding: 15px;
-        overflow-y: auto;
-    }
-    
-    .chat-input-area {
-        padding: 10px;
-        background: #0a0a0a;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    /* Кнопка назад в чате */
-    .back-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(255, 255, 255, 0.05);
-        border: none;
-        color: white;
-        padding: 8px 12px;
-        border-radius: 20px;
-        font-size: 14px;
-        cursor: pointer;
-        margin-right: 10px;
-    }
-    
-    .chat-contact-info {
-        display: flex;
-        align-items: center;
-    }
-    
-    /* Сообщения */
-    .message {
-        max-width: 85%;
-    }
-    
-    /* Друзья */
-    .friends-container {
-        padding: 15px;
-    }
-    
-    .friends-header {
-        flex-direction: column;
-        gap: 10px;
-        align-items: stretch;
-    }
-    
-    .add-friend-header-btn {
-        width: 100%;
-    }
-    
-    .friends-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    /* Лента */
-    .feed-container {
-        padding: 15px;
-    }
-    
-    .feed-header {
-        flex-direction: column;
-        gap: 10px;
-        align-items: stretch;
-    }
-    
-    .create-post-btn {
-        width: 100%;
-    }
-    
-    /* Игры */
-    .games-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-    
-    /* Модальные окна */
-    .modal-content {
-        width: 95%;
-        max-width: 95%;
-        margin: 10px;
-        border-radius: 16px;
-    }
-    
-    /* Уведомления */
-    .toast {
-        bottom: 80px;
-        font-size: 12px;
-        padding: 10px 16px;
-    }
-}
-
-/* Кнопка назад (добавляется динамически) */
-.back-button {
-    display: inline-flex;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    max-width: 450px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 15px;
     background: rgba(255, 255, 255, 0.1);
     border: none;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 25px;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-header {
+    text-align: center;
+    padding: 30px 20px 20px;
+}
+
+.modal-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.9;
+}
+
+.modal-title {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+    padding: 0 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
     font-size: 14px;
+}
+
+.submit-btn {
+    width: calc(100% - 40px);
+    margin: 10px 20px 20px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.back-button:hover {
-    background: rgba(255, 255, 255, 0.2);
+/* Profile Modal */
+.profile-modal-content {
+    max-width: 450px;
+    width: 90%;
+    background: #0a0a0a;
+    border-radius: 24px;
+    overflow: hidden;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+.profile-cover {
+    height: 130px;
+    background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+    position: relative;
+    background-size: cover;
+    background-position: center;
 }
-/* ===== ПРОФИЛЬ ДРУГА ===== */
+
+.change-cover-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-avatar-wrapper {
+    position: relative;
+    margin-top: -55px;
+    margin-left: 25px;
+    margin-bottom: 20px;
+}
+
+.profile-avatar-large {
+    width: 90px;
+    height: 90px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 45px;
+    border: 4px solid #0a0a0a;
+    overflow: hidden;
+}
+
+.change-avatar-btn-large {
+    position: absolute;
+    bottom: 5px;
+    right: -5px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-info-container {
+    padding: 0 25px 25px 25px;
+}
+
+.profile-field {
+    margin-bottom: 18px;
+}
+
+.profile-field label {
+    display: block;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 6px;
+}
+
+.last-id-change {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 8px;
+}
+
+.id-change-warning {
+    font-size: 11px;
+    color: #ffaa00;
+    margin-top: 5px;
+}
+
+/* Friend Profile Modal */
 .friend-profile-modal .modal-content {
     max-width: 400px;
 }
@@ -1997,7 +919,7 @@ body {
     width: 100px;
     height: 100px;
     margin: 0 auto 15px;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -2014,14 +936,14 @@ body {
 
 .friend-profile-id {
     font-size: 14px;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
     margin-bottom: 15px;
 }
 
 .friend-profile-bio {
     font-size: 14px;
     padding: 15px;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     margin: 10px 0;
 }
@@ -2030,7 +952,7 @@ body {
     display: flex;
     justify-content: space-around;
     padding: 15px;
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
     border-radius: 12px;
     margin: 15px 0;
 }
@@ -2046,37 +968,142 @@ body {
 
 .friend-profile-stat-label {
     font-size: 11px;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
 }
 
-.last-id-change {
-    font-size: 11px;
-    color: rgba(255,255,255,0.4);
-    margin-top: 8px;
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    z-index: 10001;
+    animation: slideUp 0.3s ease;
+    backdrop-filter: blur(20px);
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    text-align: center;
+    min-width: 200px;
+    max-width: 80%;
+}
+
+.toast-success {
+    border-left: 3px solid #00ff88;
+}
+
+.toast-error {
+    border-left: 3px solid #ff4444;
+}
+
+/* Game Modal */
+.game-modal {
+    max-width: 500px;
     text-align: center;
 }
 
-.id-change-warning {
-    font-size: 11px;
-    color: #ffaa00;
-    margin-top: 5px;
+#snakeCanvas {
+    background: #1a1a1a;
+    border-radius: 12px;
+    margin: 20px 0;
 }
-/* ===== МОБИЛЬНАЯ ВЕРСИЯ (до 768px) ===== */
+
+/* Context Menu */
+.context-menu {
+    position: fixed;
+    background: rgba(10, 10, 10, 0.98);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    min-width: 160px;
+    z-index: 10000;
+    overflow: hidden;
+}
+
+.context-menu-item {
+    padding: 10px 15px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+}
+
+.context-menu-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Found User */
+.found-user {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin: 10px 20px;
+}
+
+.add-friend-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 5px 15px;
+    cursor: pointer;
+    color: white;
+}
+
+/* Animations */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+/* ============================================
+   MOBILE STYLES (ТОЛЬКО ДЛЯ ТЕЛЕФОНОВ)
+   ============================================ */
 @media (max-width: 768px) {
-    /* Убираем десктопное боковое меню */
+    /* Скрываем боковое меню на телефонах */
     .sidebar {
         display: none;
     }
     
-    .main-content {
-        margin-left: 0;
-        margin-bottom: 0;
-        padding: 10px;
-        padding-bottom: 70px;
-    }
-    
-    /* Нижнее меню для телефонов */
+    /* Показываем нижнее меню на телефонах */
     .mobile-bottom-nav {
+        display: flex;
         position: fixed;
         bottom: 0;
         left: 0;
@@ -2084,11 +1111,10 @@ body {
         background: rgba(10, 10, 10, 0.95);
         backdrop-filter: blur(20px);
         border-top: 1px solid rgba(255, 255, 255, 0.1);
-        display: flex;
         justify-content: space-around;
         align-items: center;
         padding: 8px 12px;
-        z-index: 200;
+        z-index: 1000;
         height: 60px;
     }
     
@@ -2112,121 +1138,26 @@ body {
     }
     
     .mobile-nav-icon {
-        font-size: 22px;
-        width: 24px;
-        height: 24px;
+        font-size: 24px;
+        width: 28px;
+        height: 28px;
         display: flex;
         align-items: center;
         justify-content: center;
-    }
-    
-    /* Иконки через data:image (замени на свои) */
-    .mobile-nav-icon[data-icon="chats"]::before {
-        content: "💬";
-        font-size: 22px;
-    }
-    .mobile-nav-icon[data-icon="friends"]::before {
-        content: "👥";
-        font-size: 22px;
-    }
-    .mobile-nav-icon[data-icon="feed"]::before {
-        content: "📱";
-        font-size: 22px;
-    }
-    .mobile-nav-icon[data-icon="games"]::before {
-        content: "🎮";
-        font-size: 22px;
-    }
-    .mobile-nav-icon[data-icon="profile"]::before {
-        content: "👤";
-        font-size: 22px;
     }
     
     .mobile-nav-text {
         font-size: 10px;
     }
     
-    /* Уменьшаем размеры элементов */
-    .desktop-header {
-        padding: 10px 15px;
-        margin-bottom: 15px;
+    /* Основной контент на телефонах */
+    .main-content {
+        margin-left: 0;
+        margin-bottom: 60px;
+        padding: 10px;
     }
     
-    .desktop-title {
-        font-size: 18px;
-    }
-    
-    .title-icon {
-        font-size: 22px;
-    }
-    
-    .user-panel {
-        gap: 10px;
-    }
-    
-    .user-info {
-        gap: 8px;
-    }
-    
-    .user-avatar {
-        width: 35px;
-        height: 35px;
-        font-size: 16px;
-    }
-    
-    .user-id-display {
-        font-size: 10px;
-    }
-    
-    .logout-btn {
-        padding: 5px 10px;
-        font-size: 11px;
-    }
-    
-    /* Карточки статистики */
-    .stats-grid {
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-    
-    .stat-card {
-        padding: 12px;
-    }
-    
-    .stat-icon {
-        font-size: 24px;
-    }
-    
-    .stat-value {
-        font-size: 22px;
-    }
-    
-    .stat-label {
-        font-size: 11px;
-    }
-    
-    /* Быстрые действия */
-    .quick-actions {
-        gap: 10px;
-    }
-    
-    .action-card {
-        padding: 12px;
-    }
-    
-    .action-icon {
-        font-size: 28px;
-    }
-    
-    .action-card h3 {
-        font-size: 14px;
-    }
-    
-    .action-card p {
-        font-size: 10px;
-    }
-    
-    /* Чаты */
+    /* Чаты на телефонах */
     .chats-container {
         flex-direction: column;
         height: auto;
@@ -2238,86 +1169,73 @@ body {
         max-height: 200px;
     }
     
-    .chats-header h2 {
-        font-size: 16px;
+    /* Область чата на телефонах (полноэкранная) */
+    .chat-area {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 60px;
+        background: #0a0a0a;
+        z-index: 200;
+        flex-direction: column;
+        border-radius: 0;
     }
     
-    .chat-item {
-        padding: 10px 12px;
-    }
-    
-    .chat-item-avatar {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-    }
-    
-    .chat-item-name {
-        font-size: 14px;
+    .chat-area.active {
+        display: flex;
     }
     
     .chat-area-header {
-        padding: 10px;
-    }
-    
-    .chat-contact-avatar {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-    }
-    
-    .chat-contact-info h3 {
-        font-size: 14px;
+        position: sticky;
+        top: 0;
+        background: #0a0a0a;
+        padding: 12px 15px;
     }
     
     .chat-messages-area {
-        padding: 10px;
-        height: 350px;
-        max-height: 350px;
+        padding: 15px;
+        height: auto;
+        flex: 1;
     }
     
     .message {
         max-width: 85%;
     }
     
-    .message-avatar {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
-    }
-    
-    .message-content {
-        font-size: 12px;
-        padding: 8px 12px;
-    }
-    
-    .chat-input-area {
-        padding: 8px;
+    /* Кнопка назад на телефонах */
+    .back-button {
+        display: inline-flex;
+        align-items: center;
         gap: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 25px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-right: 10px;
     }
     
-    .chat-input-area input {
-        padding: 10px;
-        font-size: 13px;
-    }
-    
-    .chat-input-area button {
-        padding: 10px 16px;
-        font-size: 13px;
-    }
-    
-    /* Друзья */
+    /* Друзья на телефонах */
     .friends-container {
-        padding: 10px;
+        padding: 15px;
     }
     
-    .friends-header h2 {
-        font-size: 16px;
+    .friends-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
     }
     
     .add-friend-header-btn {
-        font-size: 12px;
-        padding: 8px 12px;
+        width: 100%;
+    }
+    
+    .friends-grid {
+        grid-template-columns: 1fr;
     }
     
     .friend-card {
@@ -2330,75 +1248,35 @@ body {
         font-size: 22px;
     }
     
-    .friend-name {
-        font-size: 14px;
-    }
-    
-    .friend-id {
-        font-size: 10px;
-    }
-    
-    /* Лента */
+    /* Лента на телефонах */
     .feed-container {
-        padding: 10px;
-    }
-    
-    .feed-header h2 {
-        font-size: 16px;
-    }
-    
-    .create-post-btn {
-        font-size: 12px;
-        padding: 8px 12px;
-    }
-    
-    .post-card {
-        padding: 12px;
-    }
-    
-    .post-avatar {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-    }
-    
-    .post-author {
-        font-size: 13px;
-    }
-    
-    .post-content {
-        font-size: 13px;
-    }
-    
-    /* Игры */
-    .games-container {
-        padding: 10px;
-    }
-    
-    .games-header h2 {
-        font-size: 16px;
-    }
-    
-    .game-card {
         padding: 15px;
     }
     
-    .game-icon {
-        font-size: 35px;
+    .feed-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
     }
     
-    .game-card h3 {
-        font-size: 14px;
+    .create-post-btn {
+        width: 100%;
     }
     
-    /* Модалки */
+    /* Игры на телефонах */
+    .games-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .game-card {
+        padding: 20px;
+    }
+    
+    /* Модалки на телефонах */
     .modal-content {
         width: 95%;
+        margin: 10px;
         border-radius: 16px;
-    }
-    
-    .modal-header h2 {
-        font-size: 18px;
     }
     
     .profile-avatar-large {
@@ -2407,28 +1285,23 @@ body {
         font-size: 35px;
     }
     
+    .profile-avatar-wrapper {
+        margin-top: -45px;
+        margin-left: 20px;
+    }
+    
     .profile-info-container {
-        padding: 0 15px 15px;
+        padding: 0 20px 20px 20px;
     }
     
-    .profile-field label {
-        font-size: 11px;
-    }
-    
-    .profile-field input,
-    .profile-field textarea {
-        font-size: 13px;
-        padding: 10px;
-    }
-    
-    /* Уведомления */
+    /* Уведомления на телефонах */
     .toast {
         bottom: 75px;
         font-size: 12px;
         padding: 10px 16px;
     }
     
-    /* Игра змейка */
+    /* Игра змейка на телефонах */
     #snakeCanvas {
         width: 300px;
         height: 300px;
@@ -2439,236 +1312,83 @@ body {
     }
 }
 
-/* Для очень маленьких экранов */
-@media (max-width: 480px) {
-    .mobile-nav-icon {
-        font-size: 20px;
-    }
-    
-    .mobile-nav-text {
-        font-size: 9px;
-    }
-    
-    .chat-messages-area {
-        height: 300px;
-        max-height: 300px;
-    }
-    
-    .message-content {
-        font-size: 11px;
-    }
-    
-    .friend-avatar {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-    }
-}
-/* Запрет увеличения при фокусе на полях ввода (для iOS) */
-input, textarea, select {
-    font-size: 16px;
+/* ============================================
+   LOGIN PAGE STYLES
+   ============================================ */
+.desktop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    margin-bottom: 30px;
 }
 
-@media (max-width: 768px) {
-    input, textarea, select {
-        font-size: 16px; /* Минимум 16px чтобы Safari не зумал */
-    }
-}
-
-/* Мобильное меню - показываем ТОЛЬКО на телефонах */
-.mobile-bottom-nav {
-    display: none;
-}
-
-/* Показываем мобильное меню только на экранах до 768px */
-@media (max-width: 768px) {
-    .mobile-bottom-nav {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(10, 10, 10, 0.95);
-        backdrop-filter: blur(20px);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        justify-content: space-around;
-        align-items: center;
-        padding: 8px 12px;
-        z-index: 200;
-        height: 60px;
-    }
-}
-/* По умолчанию (ПК) - мобильное меню скрыто */
-.mobile-bottom-nav {
-    display: none;
-}
-/* Кнопка смены обложки (карандашик в углу) */
-.change-cover-btn {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 30px;
-    width: 36px;
-    height: 36px;
-    cursor: pointer;
-    font-size: 16px;
+.desktop-title {
+    font-size: 24px;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
+    gap: 10px;
 }
 
-.change-cover-btn:hover {
-    background: rgba(0, 0, 0, 0.9);
-    transform: scale(1.05);
+.title-icon {
+    font-size: 28px;
+    opacity: 0.9;
+    animation: spin 10s linear infinite;
 }
 
-/* Кнопка смены аватара (карандашик) */
-.change-avatar-btn-large {
+.login-center {
+    text-align: center;
+}
+
+.login-icon-wrapper {
+    position: relative;
+    margin-bottom: 40px;
+    display: inline-block;
+}
+
+.login-icon {
+    font-size: 80px;
+    opacity: 0.9;
+    animation: float 3s ease-in-out infinite;
+}
+
+.login-ring {
     position: absolute;
-    bottom: 5px;
-    right: 5px;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
+    animation: rotate 10s linear infinite;
 }
 
-.change-avatar-btn-large:hover {
-    background: rgba(0, 0, 0, 0.9);
-    transform: scale(1.05);
-}
-/* ===== МОБИЛЬНОЕ МЕНЮ - ПОКАЗЫВАЕМ ТОЛЬКО НА ТЕЛЕФОНАХ ===== */
-.mobile-bottom-nav {
-    display: none;
-}
-
-/* Телефоны и планшеты (ширина до 768px) */
-@media (max-width: 768px) {
-    .mobile-bottom-nav {
-        display: flex !important;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(10, 10, 10, 0.95);
-        backdrop-filter: blur(20px);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        justify-content: space-around;
-        align-items: center;
-        padding: 8px 12px;
-        z-index: 1000;
-        height: 60px;
-    }
-    
-    .mobile-nav-item {
-        display: flex !important;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 5px 12px;
-        border-radius: 12px;
-        transition: all 0.2s;
-        color: rgba(255, 255, 255, 0.6);
-    }
-    
-    .mobile-nav-icon {
-        width: 24px;
-        height: 24px;
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-        display: block;
-    }
-    
-    .mobile-nav-text {
-        font-size: 10px;
-    }
-}
-
-/* Для очень маленьких экранов */
-@media (max-width: 480px) {
-    .mobile-bottom-nav {
-        padding: 5px 8px;
-        height: 55px;
-    }
-    
-    .mobile-nav-item {
-        padding: 4px 8px;
-    }
-    
-    .mobile-nav-icon {
-        width: 22px;
-        height: 22px;
-    }
-    
-    .mobile-nav-text {
-        font-size: 9px;
-    }
-}
-.profile-modal-content {
-    position: relative;
-    overflow: visible;
-}
-
-.profile-cover {
-    position: relative;
-    min-height: 130px;
-    border-radius: 20px 20px 0 0;
-    overflow: visible;
-}
-/* Кнопка смены обложки - видимая на всех устройствах */
-.change-cover-btn {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 30px;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
+.login-btn {
+    padding: 14px 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 40px;
+    color: var(--text-primary);
     font-size: 18px;
-    display: flex;
+    cursor: pointer;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    z-index: 10;
+    gap: 12px;
+    transition: all 0.3s ease;
 }
 
-/* Для телефонов - кнопка больше и ярче */
-@media (max-width: 768px) {
-    .change-cover-btn {
-        width: 44px;
-        height: 44px;
-        bottom: 10px;
-        right: 10px;
-        background: rgba(0, 0, 0, 0.9);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        font-size: 20px;
-    }
-    
-    /* Кнопка смены аватара тоже увеличим */
-    .change-avatar-btn-large {
-        width: 36px;
-        height: 36px;
-        bottom: 0;
-        right: 0;
-        font-size: 16px;
-    }
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes rotate {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
 }
