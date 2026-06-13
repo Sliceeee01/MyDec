@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <script>
+        // Применяем сохранённую тему при загрузке страницы
+        const savedTheme = localStorage.getItem('appTheme') || 'dark';
+        document.documentElement.classList.add(`theme-${savedTheme}`);
+    </script>
     <div class="particles"></div>
     
     <div class="main-screen">
@@ -188,6 +193,7 @@
             }, 3000);
         }
         
+        
         // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
         async function findUserByIdentifier(identifier) {
             const usersRef = ref(db, 'users');
@@ -330,6 +336,30 @@ document.getElementById('loginForm').onsubmit = async (e) => {
         showToast('Заполните все поля', true);
         return;
     }
+    // ========== ПРОВЕРКА СТАТУСА САЙТА ==========
+async function isSiteOnline() {
+    const settingsRef = ref(db, 'settings/isSiteOnline');
+    const snapshot = await get(settingsRef);
+    // Если настройки нет, считаем что сайт работает
+    return snapshot.val() !== false;
+}
+
+async function getMaintenanceMessage() {
+    const msgRef = ref(db, 'settings/maintenanceMessage');
+    const snapshot = await get(msgRef);
+    return snapshot.val() || '🔧 Ведутся технические работы. Пожалуйста, зайдите позже!';
+}
+
+// ========== ВХОД ==========
+document.getElementById('loginForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const identifier = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!identifier || !password) {
+        showToast('Заполните все поля', true);
+        return;
+    }
     
     // ===== ПРОВЕРКА НА АДМИНА =====
     if (identifier === 'admin' && password === 'iyu533gdk4re4') {
@@ -338,6 +368,14 @@ document.getElementById('loginForm').onsubmit = async (e) => {
         setTimeout(() => {
             window.location.href = 'admin.html';
         }, 500);
+        return;
+    }
+    
+    // ===== ПРОВЕРКА СТАТУСА САЙТА =====
+    const siteOnline = await isSiteOnline();
+    if (!siteOnline) {
+        const msg = await getMaintenanceMessage();
+        showToast(msg, true);
         return;
     }
     
@@ -368,6 +406,16 @@ document.getElementById('loginForm').onsubmit = async (e) => {
         showToast('❌ Неверный email/ID или пароль', true);
     }
 };
+    // ===== ПРОВЕРКА НА АДМИНА =====
+    if (identifier === 'admin' && password === 'iyu533gdk4re4') {
+        sessionStorage.setItem('adminSession', JSON.stringify({ email: 'admin@mail.ru', isAdmin: true }));
+        showToast('✅ Вход в админ-панель');
+        setTimeout(() => {
+            window.location.href = 'admin.html';
+        }, 500);
+        return;
+    }
+}
         
         // ========== ВОССТАНОВЛЕНИЕ ==========
         document.getElementById('forgotForm').onsubmit = async (e) => {
@@ -421,7 +469,33 @@ document.getElementById('loginForm').onsubmit = async (e) => {
                 showToast('❌ Ошибка: пользователь не найден', true);
             }
         };
+         // Применяем сохранённую тему при загрузке страницы
+function applySavedTheme() {
+    const savedTheme = localStorage.getItem('appTheme') || 'dark';
+    document.documentElement.classList.add(`theme-${savedTheme}`);
+}
+
+applySavedTheme();       // ========== ПРОВЕРКА СТАТУСА САЙТА ПРИ ЗАГРУЗКЕ ==========
+        async function updateSystemStatus() {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.querySelector('.status-text');
+            const settingsRef = ref(db, 'settings/isSiteOnline');
+            const snapshot = await get(settingsRef);
+            const isOnline = snapshot.val() !== false;
+            
+            if (statusDot && statusText) {
+                if (isOnline) {
+                    statusDot.style.background = '#00ff88';
+                    statusText.textContent = 'Система онлайн';
+                } else {
+                    statusDot.style.background = '#ff4444';
+                    statusText.textContent = 'Технические работы';
+                }
+            }
+        }
         
+        // Вызываем при загрузке
+        await updateSystemStatus();
         console.log('✅ Все обработчики событий загружены');
     </script>
 </body>

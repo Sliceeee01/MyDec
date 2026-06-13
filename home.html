@@ -7,10 +7,14 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <script>
+        const savedTheme = localStorage.getItem('appTheme') || 'dark';
+        document.documentElement.classList.add(`theme-${savedTheme}`);
+    </script>
     <div class="particles"></div>
     
     <div class="app-container">
-        <!-- БОКОВОЕ МЕНЮ -->
+        <!-- БОКОВОЕ МЕНЮ (ПК) -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo">
@@ -18,7 +22,6 @@
                     <span class="logo-text">Slicemes</span>
                 </div>
             </div>
-            
             <nav class="sidebar-nav">
                 <div class="nav-item active" data-page="chats">
                     <span class="nav-icon">💬</span>
@@ -36,8 +39,11 @@
                     <span class="nav-icon">🎮</span>
                     <span class="nav-text">Развлечения</span>
                 </div>
+                <div class="nav-item" data-page="settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Настройки</span>
+                </div>
             </nav>
-            
             <div class="sidebar-footer">
                 <div class="user-mini" id="openProfileBtn">
                     <div class="user-mini-avatar" id="sidebarAvatar">👤</div>
@@ -46,11 +52,11 @@
                         <div class="user-mini-id" id="sidebarUserUniqueId">ID...</div>
                     </div>
                 </div>
-                <button id="logoutBtnSidebar" class="logout-sidebar-btn">🚪 Выход</button>
+                <button id="logoutBtnSidebar" class="logout-sidebar-btn">Выйти</button>
             </div>
         </aside>
 
-        <!-- МОБИЛЬНОЕ НИЖНЕЕ МЕНЮ (ТОЛЬКО ДЛЯ ТЕЛЕФОНОВ) -->
+        <!-- МОБИЛЬНОЕ НИЖНЕЕ МЕНЮ (ТЕЛЕФОН) -->
         <div class="mobile-bottom-nav" id="mobileBottomNav">
             <button class="mobile-nav-item" data-page="chats">
                 <div class="mobile-nav-icon">💬</div>
@@ -68,9 +74,9 @@
                 <div class="mobile-nav-icon">🎮</div>
                 <span class="mobile-nav-text">Игры</span>
             </button>
-            <button class="mobile-nav-item" data-page="profile">
-                <div class="mobile-nav-icon">👤</div>
-                <span class="mobile-nav-text">Профиль</span>
+            <button class="mobile-nav-item" data-page="settings">
+                <div class="mobile-nav-icon">⚙️</div>
+                <span class="mobile-nav-text">Настройки</span>
             </button>
         </div>
 
@@ -92,14 +98,13 @@
                     </div>
                     <div class="chat-area">
                         <div class="chat-area-header" id="chatAreaHeader" style="display: none;">
-                            <div class="chat-contact-info">
+                            <button class="back-button" id="backButton" style="display: none;">←</button>
+                            <div class="chat-contact-center">
                                 <div class="chat-contact-avatar" id="chatContactAvatar">👤</div>
-                                <div>
-                                    <h3 id="chatContactName">Имя</h3>
-                                    <span class="chat-contact-status" id="chatContactStatus">Онлайн</span>
-                                </div>
+                                <div class="chat-contact-name" id="chatContactName">Имя</div>
+                                <div class="chat-contact-status" id="chatContactStatus"></div>
                             </div>
-                            <button id="deleteChatBtn" class="delete-chat-btn">🗑️</button>
+                            <div style="width: 40px;"></div>
                         </div>
                         <div class="chat-messages-area" id="chatMessagesArea">
                             <div class="empty-chat">
@@ -109,7 +114,7 @@
                         </div>
                         <div class="chat-input-area" id="chatInputArea" style="display: none;">
                             <input type="text" id="messageInput" placeholder="Сообщение...">
-                            <button id="sendMessageBtn">📤</button>
+                            <button id="sendMessageBtn" class="send-btn">→</button>
                         </div>
                     </div>
                 </div>
@@ -136,35 +141,87 @@
                 <div class="feed-container">
                     <div class="feed-header">
                         <h2>Лента</h2>
-                        <button class="create-post-btn" id="createPostBtn">📷 Создать пост</button>
+                        <button class="create-post-btn" id="createPostBtn">Создать пост</button>
                     </div>
                     <div class="feed-posts" id="feedPosts">
                         <div class="empty-state">Нет постов</div>
                     </div>
                 </div>
             </div>
+<!-- СТРАНИЦА РАЗВЛЕЧЕНИЙ -->
+<div id="gamesPage" class="page">
+    <div class="games-container">
+        <div class="games-header">
+            <h2>Развлечения</h2>
+        </div>
+        <div class="games-grid" id="gamesGrid">
+            <div class="game-card" data-game="2048">
+                <div class="game-icon">2️⃣0️⃣4️⃣8️⃣</div>
+                
+                
+            </div>
+            <!-- Сюда можно добавить другие игры -->
+        </div>
+    </div>
+</div>
+<!-- МОДАЛКА: ИГРА 2048 -->
+<div id="game2048Modal" class="modal">
+    <div class="modal-content game2048-modal-content">
+        <button class="close-modal" id="closeGame2048Modal">✕</button>
+        <h2 style="text-align: center; margin-bottom: 10px;">2048</h2>
+        
+        <div class="game2048-stats">
+            <div class="game2048-score">
+                <span class="game2048-label">Счет</span>
+                <span id="game2048-score">0</span>
+            </div>
+            <div class="game2048-best">
+                <span class="game2048-label">Рекорд</span>
+                <span id="game2048-best">0</span>
+            </div>
+            <button id="game2048-newgame" class="game2048-newgame">Новая игра</button>
+        </div>
+        
+        <div class="game2048-container">
+            <div id="game2048-board" class="game2048-board"></div>
+        </div>
+        
+        <div class="game2048-instructions">
+            <p>Свайпайте пальцем или используйте стрелки на клавиатуре</p>
+        </div>
+    </div>
+</div>
 
-            <!-- СТРАНИЦА РАЗВЛЕЧЕНИЙ -->
-            <div id="gamesPage" class="page">
-                <div class="games-container">
-                    <div class="games-header">
-                        <h2>Развлечения</h2>
+            <!-- СТРАНИЦА НАСТРОЕК -->
+            <div id="settingsPage" class="page">
+                <div class="settings-container">
+                    <div class="settings-header">
+                        <h2>Настройки</h2>
                     </div>
-                    <div class="games-grid">
-                        <div class="game-card" data-game="snake">
-                            <div class="game-icon">🐍</div>
-                            <h3>Змейка</h3>
-                            <p>Классическая игра</p>
+                    <div class="settings-profile-card">
+                        <div class="settings-profile-avatar" id="settingsAvatar">👤</div>
+                        <div class="settings-profile-info">
+                            <div class="settings-profile-name" id="settingsUserName">Загрузка...</div>
+                            <div class="settings-profile-id" id="settingsUserUniqueId">ID...</div>
                         </div>
-                        <div class="game-card" data-game="tetris">
-                            <div class="game-icon">🧩</div>
-                            <h3>Тетрис</h3>
-                            <p>Скоро</p>
-                        </div>
-                        <div class="game-card" data-game="clicker">
-                            <div class="game-icon">🖱️</div>
-                            <h3>Кликер</h3>
-                            <p>Скоро</p>
+                        <button class="settings-profile-btn" id="settingsProfileBtn">Редактировать профиль</button>
+                    </div>
+                    <div class="settings-section">
+                        <div class="settings-section-title">Тема приложения</div>
+                        <div class="theme-selector">
+                            <button class="theme-select-btn" id="themeSelectBtn">
+                                <span id="currentThemeName">🌙 Тёмная</span>
+                                <span class="select-arrow">▼</span>
+                            </button>
+                            <div class="theme-dropdown" id="themeDropdown" style="display: none;">
+                                <button class="theme-option" data-theme="dark">🌙 Тёмная</button>
+                                <button class="theme-option" data-theme="light">☀️ Светлая</button>
+                                <button class="theme-option" data-theme="red">🔴 Красная</button>
+                                <button class="theme-option" data-theme="green">🟢 Зелёная</button>
+                                <button class="theme-option" data-theme="pink">🌸 Розовая</button>
+                                <button class="theme-option" data-theme="yellow">🟡 Жёлтая</button>
+                                <button class="theme-option" data-theme="blue">💙 Голубая</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -172,7 +229,7 @@
         </main>
     </div>
 
-    <!-- МОДАЛКА: ДОБАВИТЬ ДРУГА -->
+    <!-- МОДАЛКИ -->
     <div id="addFriendModal" class="modal">
         <div class="modal-content">
             <button class="close-modal" id="closeAddFriendModal">✕</button>
@@ -185,61 +242,50 @@
                 <input type="text" id="friendIdInput" placeholder="Введите ID пользователя">
             </div>
             <button id="searchFriendBtnModal" class="submit-btn">Найти</button>
-            <div id="searchResultModal" style="margin-top: 15px;"></div>
+            <div id="searchResultModal"></div>
             <p style="text-align:center; color: rgba(255,255,255,0.4); font-size: 12px; margin-top: 15px;">
                 Ваш ID: <strong id="myIdInAddFriend">...</strong>
             </p>
         </div>
     </div>
 
-    <!-- МОДАЛКА: ПРОФИЛЬ (СВОЙ) -->
     <div id="profileModal" class="modal">
         <div class="modal-content profile-modal-content">
             <button class="close-modal" id="closeProfileModal">✕</button>
-            
-            <!-- Обложка профиля -->
             <div class="profile-cover" id="profileCover">
                 <button class="change-cover-btn" id="changeCoverBtn">✏️</button>
             </div>
-
-            <!-- Аватар -->
             <div class="profile-avatar-wrapper">
                 <div class="profile-avatar-large" id="profileAvatarLarge">👤</div>
                 <button class="change-avatar-btn-large" id="changeAvatarBtn">✏️</button>
             </div>
-            
             <div class="profile-info-container">
                 <div class="profile-field">
                     <label>Имя пользователя</label>
                     <input type="text" id="profileNameInput" placeholder="Ваше имя">
                 </div>
-                
                 <div class="profile-field">
                     <label>О себе</label>
                     <textarea id="profileBioInput" rows="3" placeholder="Расскажите о себе..."></textarea>
                 </div>
-                
                 <div class="profile-field">
                     <label>Email</label>
                     <input type="email" id="profileEmailInput" readonly disabled>
                 </div>
-                
                 <div class="profile-field">
                     <label>Мой ID</label>
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="profileIdInput" style="flex:1">
                         <button id="changeIdBtn" class="submit-btn" style="width: auto; padding: 0 15px; margin:0;">✏️ Изменить</button>
                     </div>
-                    <div class="last-id-change" id="lastIdChange" style="font-size: 12px; margin-top: 5px;"></div>
-                    <div class="id-change-warning" style="font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 5px;">ℹ️ ID можно изменить раз в 7 дней</div>
+                    <div class="last-id-change" id="lastIdChange"></div>
+                    <div class="id-change-warning">ℹ️ ID можно изменить раз в 7 дней</div>
                 </div>
-                
                 <button id="saveProfileChangesBtn" class="submit-btn">Сохранить изменения</button>
             </div>
         </div>
     </div>
 
-    <!-- МОДАЛКА: СОЗДАТЬ ПОСТ -->
     <div id="createPostModal" class="modal">
         <div class="modal-content">
             <button class="close-modal" id="closePostModal">✕</button>
@@ -250,15 +296,14 @@
                 <textarea id="postContent" rows="4" placeholder="Что у вас нового?"></textarea>
             </div>
             <div class="form-group">
-                <label>📷 Прикрепить фото или видео</label>
+                <label>Прикрепить фото или видео</label>
                 <input type="file" id="postMediaFile" accept="image/*,video/*">
-                <div id="mediaPreview" style="margin-top: 10px;"></div>
+                <div id="mediaPreview"></div>
             </div>
-            <button id="publishPostBtn" class="submit-btn">📤 Опубликовать</button>
+            <button id="publishPostBtn" class="submit-btn">Опубликовать</button>
         </div>
     </div>
 
-    <!-- МОДАЛКА: ИГРА ЗМЕЙКА -->
     <div id="snakeGameModal" class="modal">
         <div class="modal-content game-modal">
             <button class="close-modal" id="closeGameModal">✕</button>
@@ -269,7 +314,6 @@
         </div>
     </div>
 
-    <!-- УВЕДОМЛЕНИЯ -->
     <div id="toast" class="toast" style="display: none;"></div>
 
     <script type="module">
